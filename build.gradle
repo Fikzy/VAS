@@ -1,0 +1,37 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.9'
+    id 'org.beryx.runtime' version '1.12.5'
+}
+
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    implementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '2.41.0'
+
+    implementation 'io.github.bonigarcia:webdrivermanager:4.4.3'
+
+    javafx {
+        version = "16"
+        modules = ['javafx.controls']
+    }
+}
+
+application {
+    mainClass.set("vaf.Main")
+}
+
+runtime {
+    addOptions '--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages'
+
+    launcher {
+        jvmArgs.add('-Djdk.tls.client.protocols=TLSv1.1,TLSv1.2')
+        jvmArgs.add('-Dhttps.protocols=TLSv1.1,TLSv1.2')
+    }
+}

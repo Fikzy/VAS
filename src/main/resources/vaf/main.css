@@ -1,0 +1,8 @@
+.center-display:disabled {
+    -fx-opacity: 0.2;
+}
+
+.remove-button {
+    -fx-background-color: #E63946;
+    -fx-text-fill: white;
+}
