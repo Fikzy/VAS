@@ -37,3 +37,6 @@ gradle-app.setting
 
 # IDEA
 .idea
+
+# Misc
+/artwork/
