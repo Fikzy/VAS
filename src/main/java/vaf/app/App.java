@@ -4,25 +4,31 @@ import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToolBar;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import vaf.Main;
-import vaf.VAF;
+import vaf.scrapper.Browser;
 import vaf.scrapper.ScannerInstance;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public enum App {
     INSTANCE();
 
-    private final InputStream appIcon = Main.class.getResourceAsStream("images/icon1.png");
-    private final URL mainCss = Main.class.getResource("main.css");
+    private static final InputStream appIcon = Main.class.getResourceAsStream("icon.png");
+    private static final URL mainCss = Main.class.getResource("main.css");
+    private static final InputStream browserIcon = Main.class.getResourceAsStream("internet_browser_icon_64.png");
 
     private final Map<ScannerInstance, ScannerDisplay> scanners = new HashMap<>();
     private final VBox scannerListView = new VBox();
@@ -48,11 +54,43 @@ public enum App {
         if (display == null)
             return;
 
-        VAF.INSTANCE.removeScanner(scannerInstance);
+//        VAF.INSTANCE.removeScanner(scannerInstance);
 
         Platform.runLater(() -> {
             scannerListView.getChildren().remove(display);
         });
+    }
+
+    public static Browser browserSelection() {
+
+        ChoiceDialog<Browser> browserChoiceDialog = new ChoiceDialog<>(Browser.Chrome, EnumSet.allOf(Browser.class));
+        browserChoiceDialog.setTitle("Choix du navigateur");
+        browserChoiceDialog.setHeaderText("Choissisez un navigateur present sur votre machine");
+        browserChoiceDialog.setContentText("Navigateur :");
+        if (browserIcon != null)
+            browserChoiceDialog.setGraphic(new ImageView(new Image(browserIcon)));
+
+        Alert invalidBrowserAlert = new Alert(Alert.AlertType.WARNING);
+        invalidBrowserAlert.setHeaderText("Merci de selectionner un navigateur presentement installe sur votre machine.");
+
+        Optional<Browser> selectedBrowser = Optional.empty();
+        while (selectedBrowser.isEmpty()) {
+
+            selectedBrowser = browserChoiceDialog.showAndWait();
+            if (selectedBrowser.isEmpty())
+                System.exit(0);
+
+            Browser.setBrowser(selectedBrowser.get());
+            try {
+                Browser.getDriver(true).quit();
+            } catch (RuntimeException e) {
+                e.printStackTrace();
+                selectedBrowser = Optional.empty();
+                invalidBrowserAlert.showAndWait();
+            }
+        }
+
+        return selectedBrowser.get();
     }
 
     public void start(Stage stage) {
@@ -78,9 +116,9 @@ public enum App {
 
         Scene scene = new Scene(layout);
         scene.getRoot().getStylesheets().add(mainCss.toString());
-        stage.setScene(scene);
         stage.setMinWidth(800);
         stage.setMinHeight(500);
+        stage.setScene(scene);
 
         if (appIcon != null)
             stage.getIcons().add(new Image(appIcon));
@@ -90,7 +128,7 @@ public enum App {
         });
 
         clearAllButton.setOnMouseClicked(mouseEvent -> {
-            VAF.INSTANCE.clearScanners();
+//            VAF.INSTANCE.clearScanners();
             scannerListView.getChildren().clear();
         });
 

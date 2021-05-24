@@ -1,5 +1,6 @@
 package vaf.scrapper;
 
+// TODO: Remove
 public record ScannerInstance(String centerTitle, VaccineSelection selection) {
 
     @Override
@@ -7,14 +8,3 @@ public record ScannerInstance(String centerTitle, VaccineSelection selection) {
         return String.format("ScannerInstance: %s | %s", selection.vaccine(), centerTitle);
     }
 }
-
-//public class ScannerInstance {
-//
-//    public final String centerTitle;
-//    public final VaccineSelection selection;
-//
-//    public ScannerInstance(String centerTitle, VaccineSelection selection) {
-//        this.centerTitle = centerTitle;
-//        this.selection = selection;
-//    }
-//}

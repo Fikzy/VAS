@@ -18,9 +18,7 @@ public class DateUtils {
             .toFormatter(Locale.FRANCE);
 
     public static LocalDateTime dateFromTitle(final String title) {
-        var date = LocalDateTime.parse(title, doctolibDateFormat);
-        System.out.println("result: " + date);
-        return date;
+        return LocalDateTime.parse(title, doctolibDateFormat);
     }
 
     public static LocalDateTime zeroedCurrentDate() {
