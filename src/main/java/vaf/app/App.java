@@ -48,7 +48,6 @@ public enum App {
         if (display == null)
             return;
 
-        scanners.remove(scannerInstance);
         VAF.INSTANCE.removeScanner(scannerInstance);
 
         Platform.runLater(() -> {
@@ -91,10 +90,7 @@ public enum App {
         });
 
         clearAllButton.setOnMouseClicked(mouseEvent -> {
-            scanners.forEach((instance, display) ->
-                    VAF.INSTANCE.service.submit(() -> VAF.INSTANCE.removeScanner(instance))
-            );
-            scanners.clear();
+            VAF.INSTANCE.clearScanners();
             scannerListView.getChildren().clear();
         });
 

@@ -1,6 +1,5 @@
 package vaf;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
@@ -13,17 +12,15 @@ public class DateUtils {
     static Calendar calendar = Calendar.getInstance();
 
     // Example: jeu. 20 mai 15:10
-    public static SimpleDateFormat dateFormat = new SimpleDateFormat(
-            "EEE dd MMM hh:mm", Locale.FRENCH
-    );
-
     public static DateTimeFormatter doctolibDateFormat = new DateTimeFormatterBuilder()
-            .appendPattern("EEE dd MMM hh:mm")
+            .appendPattern("EEE dd MMM HH:mm")
             .parseDefaulting(ChronoField.YEAR, calendar.get(Calendar.YEAR))
-            .toFormatter(Locale.FRENCH);
+            .toFormatter(Locale.FRANCE);
 
     public static LocalDateTime dateFromTitle(final String title) {
-        return LocalDateTime.parse(title, doctolibDateFormat);
+        var date = LocalDateTime.parse(title, doctolibDateFormat);
+        System.out.println("result: " + date);
+        return date;
     }
 
     public static LocalDateTime zeroedCurrentDate() {

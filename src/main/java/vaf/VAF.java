@@ -71,8 +71,10 @@ public enum VAF {
         if (scanner == null)
             return;
 
-        scanner.stop();
-        scanners.remove(scannerInstance);
+        VAF.INSTANCE.service.submit(() -> {
+            scanner.stop();
+            scanners.remove(scannerInstance);
+        });
     }
 
     public <T> void instantiateScrapper(final Supplier<T> supplier) {
@@ -81,6 +83,10 @@ public enum VAF {
 
     public void loadCenters(final List<String> urls) {
         urls.forEach(url -> instantiateScrapper(() -> new AppointmentSetupScanner(url)));
+    }
+
+    public void clearScanners() {
+        scanners.forEach((instance, display) -> VAF.INSTANCE.removeScanner(instance));
     }
 
     public void start() {

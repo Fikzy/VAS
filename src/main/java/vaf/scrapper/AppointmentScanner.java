@@ -6,7 +6,6 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import vaf.DateUtils;
 import vaf.VAF;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -49,14 +48,13 @@ public class AppointmentScanner extends Scrapper {
         for (WebElement slot : slots) {
 
             String title = slot.getAttribute("title");
-            LocalDateTime slotDate = DateUtils.dateFromTitle(title);
-            System.out.println(slotDate);
+            System.out.println(title);
 
-            if (slotDate.isAfter(VAF.INSTANCE.maxDate))
+            if (DateUtils.dateFromTitle(title).isAfter(VAF.INSTANCE.maxDate))
                 break;
 
             // TODO: Multiple instances?
-            System.out.println("Valid appointment: " + slotDate);
+            System.out.println("Valid appointment: " + title);
             VAF.INSTANCE.instantiateScrapper(() -> new vaf.scrapper.AppointmentSnatcher(url, actions, scannerInstance));
             break;
         }
