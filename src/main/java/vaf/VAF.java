@@ -1,5 +1,8 @@
 package vaf;
 
+import io.reactivex.rxjava3.subjects.PublishSubject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import vaf.scrapper.ProfileFactory;
 import vaf.scrapper.Scanner;
 import vaf.scrapper.ScannerProfile;
@@ -18,8 +21,17 @@ public enum VAF {
     public final ScheduledExecutorService service = Executors.newScheduledThreadPool(8);
     private final Timer timer = new Timer();
 
-    public final List<ScannerProfile> scannerProfiles = new ArrayList<>();
     public final List<Scanner> scanners = new ArrayList<>();
+    public final List<ScannerProfile> scannerProfiles = new ArrayList<>();
+
+    public final PublishSubject<ScannerProfile> onScannerProfileAdd = PublishSubject.create();
+    public final PublishSubject<ScannerProfile> onScannerProfileRemove = PublishSubject.create();
+
+    public final PublishSubject<ScannerProfile> onScannerStartScan = PublishSubject.create();
+    public final PublishSubject<ScannerProfile> onScannerSuccessfulScan = PublishSubject.create();
+    public final PublishSubject<ScannerProfile> onScannerStopScan = PublishSubject.create();
+
+    private Logger log = LoggerFactory.getLogger(this.getClass());
 
     VAF() {
         updateMaxDate();
@@ -37,8 +49,15 @@ public enum VAF {
     }
 
     public void addScannerProfile(final ScannerProfile profile) {
-        System.out.println(profile);
+        log.info("Adding: " + profile);
         scannerProfiles.add(profile);
+        onScannerProfileAdd.onNext(profile);
+    }
+
+    public void removeScannerProfile(final ScannerProfile profile) {
+        log.info("Removing: " + profile);
+        if (scannerProfiles.remove(profile))
+            onScannerProfileRemove.onNext(profile);
     }
 
     public void start() {

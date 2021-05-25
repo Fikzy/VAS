@@ -1,5 +1,9 @@
-.center-display:disabled {
+.scanner-display:disabled {
     -fx-opacity: 0.2;
+}
+
+.scanner-display:success {
+    -fx-background-color: #a8dadc;
 }
 
 .remove-button {

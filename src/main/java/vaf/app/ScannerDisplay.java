@@ -5,13 +5,11 @@ import javafx.geometry.Insets;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.ToolBar;
 import javafx.scene.text.Text;
-import vaf.scrapper.ScannerInstance;
+import vaf.scrapper.ScannerProfile;
 
 public class ScannerDisplay extends ToolBar {
 
     static final double height = 40;
-
-    final ScannerInstance scannerInstance;
 
     final ToggleSwitch toggleSwitch;
     final Text centerTitle;
@@ -19,23 +17,22 @@ public class ScannerDisplay extends ToolBar {
     final ProgressIndicator progressIndicator;
     final Button deleteButton;
 
-    public ScannerDisplay(final ScannerInstance scannerInstance) {
+    public ScannerDisplay(final ScannerProfile scannerProfile) {
 
         this.setMinHeight(height);
         this.setMaxHeight(height);
         this.setPrefHeight(height);
 
-        this.scannerInstance = scannerInstance;
-
         this.toggleSwitch = new ToggleSwitch();
         this.toggleSwitch.switchOnProperty().set(true);
 
-        this.progressIndicator = new ProgressIndicator(-1);
+        this.progressIndicator = new ProgressIndicator(0);
         this.progressIndicator.setMaxSize(20, 20);
+        this.progressIndicator.setVisible(false);
 
-        this.centerTitle = new Text(scannerInstance.centerTitle());
+        this.centerTitle = new Text(scannerProfile.centerTitle());
 
-        this.vaccineName = new Text(scannerInstance.selection().vaccine().name());
+        this.vaccineName = new Text(scannerProfile.selectedVaccine().name());
 
         this.deleteButton = new Button("Remove"); // ✕
         this.deleteButton.getStyleClass().add("remove-button");
@@ -44,9 +41,23 @@ public class ScannerDisplay extends ToolBar {
         this.getItems().addAll(
                 toggleSwitch, Utils.hSpacer(10), centerTitle, progressIndicator, Utils.hSpacer(), vaccineName, Utils.hSpacer(20), deleteButton)
         ;
-        this.getStyleClass().add("center-display");
+        this.getStyleClass().add("scanner-display");
         this.toggleSwitch.switchOnProperty().addListener((observableValue, aBoolean, t1) -> {
             this.pseudoClassStateChanged(PseudoClass.getPseudoClass("disabled"), aBoolean);
         });
+    }
+
+    public void startScanning() {
+        progressIndicator.setProgress(-1);
+        progressIndicator.setVisible(true);
+    }
+
+    public void successfulScan() {
+        progressIndicator.setVisible(false);
+        pseudoClassStateChanged(PseudoClass.getPseudoClass("success"), true);
+    }
+
+    public void stopScanning() {
+        progressIndicator.setVisible(false);
     }
 }

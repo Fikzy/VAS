@@ -7,7 +7,6 @@ import vaf.DateUtils;
 import vaf.VAF;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.List;
 
 public class Scanner {
@@ -27,15 +26,18 @@ public class Scanner {
 
         while (true) {
             for (ScannerProfile profile : profiles) {
-                System.out.println(LocalDateTime.now() + ": Scanning " + profile);
+
+                VAF.INSTANCE.onScannerStartScan.onNext(profile);
+
                 if (scan(profile)) {
-                    System.out.println(LocalDateTime.now() + ": Appointment found!");
+                    VAF.INSTANCE.onScannerSuccessfulScan.onNext(profile);
                     return;
                     // TODO:
                     // - Prompt user to resume in case of failure
                     // - Allow pause?
                 }
-                System.out.println(LocalDateTime.now() + ": Finished scanning " + profile);
+
+                VAF.INSTANCE.onScannerStopScan.onNext(profile);
             }
         }
     }

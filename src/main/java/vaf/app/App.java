@@ -13,8 +13,9 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import vaf.Main;
+import vaf.VAF;
 import vaf.scrapper.Browser;
-import vaf.scrapper.ScannerInstance;
+import vaf.scrapper.ScannerProfile;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -30,16 +31,31 @@ public enum App {
     private static final URL mainCss = Main.class.getResource("main.css");
     private static final InputStream browserIcon = Main.class.getResourceAsStream("internet_browser_icon_64.png");
 
-    private final Map<ScannerInstance, ScannerDisplay> scanners = new HashMap<>();
+    private final Map<ScannerProfile, ScannerDisplay> scannerDisplays = new HashMap<>();
     private final VBox scannerListView = new VBox();
 
-    public void addScannerDisplay(final ScannerInstance scannerInstance) {
+    App() {
 
-        final ScannerDisplay scannerDisplay = new ScannerDisplay(scannerInstance);
-        scanners.put(scannerInstance, scannerDisplay);
+        VAF.INSTANCE.onScannerProfileAdd.subscribe(this::addScannerDisplay);
+        VAF.INSTANCE.onScannerProfileRemove.subscribe(this::removeScannerDisplay);
+
+        VAF.INSTANCE.onScannerStartScan.subscribe(this::scannerDisplayStartScan);
+        VAF.INSTANCE.onScannerSuccessfulScan.subscribe(this::scannerDisplaySuccessfulScan);
+        VAF.INSTANCE.onScannerStopScan.subscribe(this::scannerDisplayStopScan);
+    }
+
+    private Optional<ScannerDisplay> getScannerDisplay(final ScannerProfile scannerProfile) {
+        ScannerDisplay display = scannerDisplays.get(scannerProfile);
+        return display == null ? Optional.empty() : Optional.of(display);
+    }
+
+    public void addScannerDisplay(final ScannerProfile scannerProfile) {
+
+        final ScannerDisplay scannerDisplay = new ScannerDisplay(scannerProfile);
+        scannerDisplays.put(scannerProfile, scannerDisplay);
 
         scannerDisplay.deleteButton.setOnMouseClicked(mouseEvent -> {
-            removeScanner(scannerInstance);
+            VAF.INSTANCE.removeScannerProfile(scannerProfile);
             scannerDisplay.deleteButton.setDisable(true);
         });
 
@@ -48,16 +64,27 @@ public enum App {
         });
     }
 
-    public void removeScanner(final ScannerInstance scannerInstance) {
+    public void removeScannerDisplay(final ScannerProfile scannerProfile) {
+        getScannerDisplay(scannerProfile).ifPresent(display -> {
+            Platform.runLater(() -> scannerListView.getChildren().remove(display));
+        });
+    }
 
-        ScannerDisplay display = scanners.get(scannerInstance);
-        if (display == null)
-            return;
+    public void scannerDisplayStartScan(final ScannerProfile scannerProfile) {
+        getScannerDisplay(scannerProfile).ifPresent(display -> {
+            Platform.runLater(display::startScanning);
+        });
+    }
 
-//        VAF.INSTANCE.removeScanner(scannerInstance);
+    public void scannerDisplaySuccessfulScan(final ScannerProfile scannerProfile) {
+        getScannerDisplay(scannerProfile).ifPresent(display -> {
+            Platform.runLater(display::successfulScan);
+        });
+    }
 
-        Platform.runLater(() -> {
-            scannerListView.getChildren().remove(display);
+    public void scannerDisplayStopScan(final ScannerProfile scannerProfile) {
+        getScannerDisplay(scannerProfile).ifPresent(display -> {
+            Platform.runLater(display::stopScanning);
         });
     }
 
@@ -129,7 +156,7 @@ public enum App {
 
         clearAllButton.setOnMouseClicked(mouseEvent -> {
 //            VAF.INSTANCE.clearScanners();
-            scannerListView.getChildren().clear();
+//            scannerListView.getChildren().clear();
         });
 
         scannerListView.getChildren().addListener(

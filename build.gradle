@@ -14,7 +14,7 @@ dependencies {
 
     implementation 'io.github.bonigarcia:webdrivermanager:4.4.3'
 
-//    implementation 'io.reactivex.rxjava3:rxjava:3.0.13-RC4'
+    implementation 'io.reactivex.rxjava3:rxjava:3.0.13-RC4'
 
     javafx {
         version = '16'
