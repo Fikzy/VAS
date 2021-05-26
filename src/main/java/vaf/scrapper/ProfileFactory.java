@@ -1,9 +1,6 @@
 package vaf.scrapper;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import vaf.VAF;
 
 import java.util.ArrayList;
@@ -11,29 +8,34 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ProfileFactory {
+public class ProfileFactory extends Scrapper {
 
-    public static List<Vaccine> vaccinesToCheck = Arrays.asList(Vaccine.values());
+    private static List<Vaccine> vaccinesToCheck = Arrays.asList(Vaccine.values());
 
-    private final WebDriver driver;
+//    private final PublishProcessor<String> urlsToGenerateFrom = PublishProcessor.create();
 
     public ProfileFactory() {
-        this.driver = Browser.getDriver(true);
+        super(true);
 
-        Action.refuseCookies().accept(this.driver);
+//        urlsToGenerateFrom.subscribe(this::generateProfiles);
     }
 
-    public void generateProfiles(final List<String> urls) {
-        urls.forEach(this::generateProfiles);
-    }
+//    public void submitUrl(final String url) {
+//        urlsToGenerateFrom.onNext(url);
+//    }
 
-    public void generateProfiles(final String url) {
+    public boolean generateProfiles(final String url) {
 
         final List<Action> actions = new ArrayList<>();
 
         // Load page
-        driver.get(url);
-        Action.waitForBookingContent(3, 50).accept(driver);
+        try {
+            driver.get(url);
+            Action.waitForBookingContent(3, 50).accept(driver);
+        } catch (InvalidArgumentException | TimeoutException ignored) {
+            System.err.println("Invalid center url");
+            return false;
+        }
 
         // Generate list of actions
         addActionIfValid(actions, Action.selectSpeciality());
@@ -41,8 +43,9 @@ public class ProfileFactory {
 
         List<VaccineSelection> vaccineSelections = getVaccineSelections();
         generateProfiles(url, actions, vaccineSelections);
-    }
 
+        return true;
+    }
 
     private void generateProfiles(final String url, final List<Action> actions,
                                   final List<VaccineSelection> vaccineSelections) {
@@ -63,7 +66,7 @@ public class ProfileFactory {
         try {
             action.accept(this.driver);
             actions.add(action);
-        } catch (NoSuchElementException ignored) {
+        } catch (NoSuchElementException | ClassCastException ignored) {
         }
     }
 
@@ -91,9 +94,5 @@ public class ProfileFactory {
         }
 
         return vaccineSelections;
-    }
-
-    public void dispose() {
-        driver.quit();
     }
 }

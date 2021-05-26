@@ -1,17 +1,19 @@
 package vaf;
 
 import io.reactivex.rxjava3.subjects.PublishSubject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import vaf.scrapper.ProfileFactory;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableSet;
 import vaf.scrapper.Scanner;
-import vaf.scrapper.ScannerProfile;
+import vaf.scrapper.*;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public enum VAF {
     INSTANCE();
@@ -21,20 +23,28 @@ public enum VAF {
     public final ScheduledExecutorService service = Executors.newScheduledThreadPool(8);
     private final Timer timer = new Timer();
 
-    public final List<Scanner> scanners = new ArrayList<>();
-    public final List<ScannerProfile> scannerProfiles = new ArrayList<>();
+    public final ObservableSet<ScannerProfile> profiles = FXCollections.observableSet(new HashSet<>());
+
+    public final List<Scrapper> scrappers = new ArrayList<>();
+
+    public final CenterSearcher centerSearcher = new CenterSearcher();
+    public final ProfileFactory profileFactory = new ProfileFactory();
+    private final Scanner scanner = new Scanner();
+    private final AtomicBoolean scanning = new AtomicBoolean(false);
+
+    public final BlockingDeque<ScannerProfile> queuedProfiles = new LinkedBlockingDeque<>();
 
     public final PublishSubject<ScannerProfile> onScannerProfileAdd = PublishSubject.create();
     public final PublishSubject<ScannerProfile> onScannerProfileRemove = PublishSubject.create();
-
     public final PublishSubject<ScannerProfile> onScannerStartScan = PublishSubject.create();
     public final PublishSubject<ScannerProfile> onScannerSuccessfulScan = PublishSubject.create();
     public final PublishSubject<ScannerProfile> onScannerStopScan = PublishSubject.create();
 
-    private Logger log = LoggerFactory.getLogger(this.getClass());
-
     VAF() {
         updateMaxDate();
+        scrappers.add(centerSearcher);
+        scrappers.add(profileFactory);
+        scrappers.add(scanner);
     }
 
     public void updateMaxDate() {
@@ -48,33 +58,69 @@ public enum VAF {
         }, nextUpdate);
     }
 
+    public void enqueueScannerProfile(final ScannerProfile profile) {
+        if (!queuedProfiles.contains(profile)) {
+            queuedProfiles.add(profile);
+            if (queuedProfiles.size() == 1)
+                startScanning();
+        }
+    }
+
+    public void dequeueScannerProfile(final ScannerProfile profile) {
+        queuedProfiles.remove(profile);
+        if (queuedProfiles.isEmpty())
+            stopScanning();
+    }
+
     public void addScannerProfile(final ScannerProfile profile) {
-        log.info("Adding: " + profile);
-        scannerProfiles.add(profile);
+
+        if (profiles.contains(profile)) {
+            System.err.println("Profile already in set");
+            return;
+        }
+
+        System.out.println("Adding: " + profile);
+        VAF.INSTANCE.profiles.add(profile);
+        queuedProfiles.add(profile);
         onScannerProfileAdd.onNext(profile);
     }
 
-    public void removeScannerProfile(final ScannerProfile profile) {
-        log.info("Removing: " + profile);
-        if (scannerProfiles.remove(profile))
-            onScannerProfileRemove.onNext(profile);
+    public ScannerProfile processScannerProfile() {
+        final ScannerProfile profile = queuedProfiles.poll();
+        if (profile != null)
+            queuedProfiles.add(profile);
+        return profile;
     }
 
-    public void start() {
+    public void removeScannerProfile(final ScannerProfile profile) {
+        if (queuedProfiles.remove(profile)) {
+            System.out.println("Removing: " + profile);
+            profiles.remove(profile);
+            onScannerProfileRemove.onNext(profile);
+        }
+    }
 
+    public void startScanning() {
+        if (scanning.get())
+            return;
+        scanning.set(true);
+        System.out.println("Started scanning");
         service.submit(() -> {
-            ProfileFactory profileFactory = new ProfileFactory();
-            profileFactory.generateProfiles(Arrays.asList(Program.urls));
-            profileFactory.dispose();
-
-            Scanner scanner = new Scanner();
-            scanners.add(scanner);
-            scanner.scan(scannerProfiles);
+            while (scanning.get())
+                scanner.scan();
         });
     }
 
+    public void stopScanning() {
+        if (!scanning.get())
+            return;
+        scanning.set(false);
+        System.out.println("Stopped scanning");
+    }
+
     public void shutdown() {
+        stopScanning();
         service.shutdown();
-        scanners.forEach(Scanner::dispose);
+        scrappers.forEach(Scrapper::dispose);
     }
 }

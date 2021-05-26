@@ -13,7 +13,7 @@ public interface Action {
 
     void accept(WebDriver driver);
 
-    static Action waitForBookingContent(long timeout, long pollingRate) {
+    static Action waitForBookingContent(long timeout, long pollingRate) throws TimeoutException {
         return driver -> new FluentWait<>(driver)
                 .withTimeout(Duration.ofSeconds(timeout))
                 .pollingEvery(Duration.ofMillis(pollingRate))

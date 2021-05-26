@@ -2,17 +2,24 @@ package vaf.app;
 
 import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.ToolBar;
 import javafx.scene.text.Text;
+import vaf.VAF;
 import vaf.scrapper.ScannerProfile;
+
+import java.awt.*;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 public class ScannerDisplay extends ToolBar {
 
     static final double height = 40;
 
     final ToggleSwitch toggleSwitch;
-    final Text centerTitle;
+    final Hyperlink centerTitle;
     final Text vaccineName;
     final ProgressIndicator progressIndicator;
     final Button deleteButton;
@@ -30,7 +37,14 @@ public class ScannerDisplay extends ToolBar {
         this.progressIndicator.setMaxSize(20, 20);
         this.progressIndicator.setVisible(false);
 
-        this.centerTitle = new Text(scannerProfile.centerTitle());
+        this.centerTitle = new Hyperlink(scannerProfile.centerTitle());
+        this.centerTitle.setOnAction(event -> {
+            try {
+                Desktop.getDesktop().browse(new URI(scannerProfile.url()));
+            } catch (IOException | URISyntaxException e1) {
+                e1.printStackTrace();
+            }
+        });
 
         this.vaccineName = new Text(scannerProfile.selectedVaccine().name());
 
@@ -38,12 +52,19 @@ public class ScannerDisplay extends ToolBar {
         this.deleteButton.getStyleClass().add("remove-button");
 
         this.setPadding(new Insets(10));
-        this.getItems().addAll(
-                toggleSwitch, Utils.hSpacer(10), centerTitle, progressIndicator, Utils.hSpacer(), vaccineName, Utils.hSpacer(20), deleteButton)
-        ;
         this.getStyleClass().add("scanner-display");
-        this.toggleSwitch.switchOnProperty().addListener((observableValue, aBoolean, t1) -> {
-            this.pseudoClassStateChanged(PseudoClass.getPseudoClass("disabled"), aBoolean);
+
+        this.getItems().addAll(
+                toggleSwitch, Utils.hSpacer(10), centerTitle, progressIndicator, Utils.hSpacer(),
+                vaccineName, Utils.hSpacer(20), deleteButton
+        );
+
+        this.toggleSwitch.switchOnProperty().addListener((observableValue, oldValue, newValue) -> {
+            this.pseudoClassStateChanged(PseudoClass.getPseudoClass("disabled"), !newValue);
+            if (newValue)
+                VAF.INSTANCE.enqueueScannerProfile(scannerProfile);
+            else
+                VAF.INSTANCE.dequeueScannerProfile(scannerProfile);
         });
     }
 

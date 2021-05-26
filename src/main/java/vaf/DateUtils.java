@@ -1,9 +1,11 @@
 package vaf;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.Locale;
 
@@ -27,5 +29,9 @@ public class DateUtils {
 
     public static LocalDateTime getZeroedDateOffset(int offset) {
         return zeroedCurrentDate().plusDays(offset);
+    }
+
+    public static LocalTime localTimeRoundedToFiveMinutes(final LocalTime time) {
+        return time.minusMinutes(time.getMinute() % 5).truncatedTo(ChronoUnit.MINUTES);
     }
 }

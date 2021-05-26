@@ -4,6 +4,9 @@ plugins {
     id 'org.beryx.runtime' version '1.12.5'
 }
 
+apply plugin: 'java'
+compileJava.options.encoding = 'UTF-8'
+
 repositories {
     mavenCentral()
 }
@@ -20,6 +23,10 @@ dependencies {
         version = '16'
         modules = ['javafx.controls']
     }
+
+    implementation 'org.controlsfx:controlsfx:11.1.0'
+
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.0-alpha1'
 }
 
 application {

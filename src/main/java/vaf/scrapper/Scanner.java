@@ -1,6 +1,9 @@
 package vaf.scrapper;
 
-import org.openqa.selenium.*;
+import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.TimeoutException;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 import vaf.DateUtils;
@@ -9,37 +12,35 @@ import vaf.VAF;
 import java.time.Duration;
 import java.util.List;
 
-public class Scanner {
-
-    private final WebDriver driver;
+public class Scanner extends Scrapper {
 
     public Scanner() {
-        this.driver = Browser.getDriver(false);
+        super(false);
 
-        Action.refuseCookies().accept(this.driver);
+        this.driver.manage().window().minimize();
     }
 
-    public void scan(final List<ScannerProfile> profiles) {
+    public void scan() {
 
-        if (profiles.isEmpty())
+        ScannerProfile profile = VAF.INSTANCE.processScannerProfile();
+        if (profile == null) {
+            VAF.INSTANCE.stopScanning();
             return;
-
-        while (true) {
-            for (ScannerProfile profile : profiles) {
-
-                VAF.INSTANCE.onScannerStartScan.onNext(profile);
-
-                if (scan(profile)) {
-                    VAF.INSTANCE.onScannerSuccessfulScan.onNext(profile);
-                    return;
-                    // TODO:
-                    // - Prompt user to resume in case of failure
-                    // - Allow pause?
-                }
-
-                VAF.INSTANCE.onScannerStopScan.onNext(profile);
-            }
         }
+
+        VAF.INSTANCE.onScannerStartScan.onNext(profile);
+
+        if (scan(profile)) {
+            VAF.INSTANCE.onScannerSuccessfulScan.onNext(profile);
+            VAF.INSTANCE.stopScanning();
+            this.driver.manage().window().maximize();
+            return;
+            // TODO:
+            // - Prompt user to resume in case of failure
+            // - Allow pause?
+        }
+
+        VAF.INSTANCE.onScannerStopScan.onNext(profile);
     }
 
     public boolean scan(final ScannerProfile profile) {
@@ -63,7 +64,7 @@ public class Scanner {
 //                    .until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@class = \"booking-message booking-message-warning undefined\"]")));
                     .until(ExpectedConditions.presenceOfNestedElementLocatedBy(bookingAvailabilities, By.xpath(".//div[@class = \"booking-message booking-message-warning undefined\"]")));
 
-            System.out.println("no appointments");
+//            System.out.println("no appointments");
             return false;
         } catch (NoSuchElementException | TimeoutException ignored) {
         }
@@ -96,9 +97,5 @@ public class Scanner {
         }
 
         return false;
-    }
-
-    public void dispose() {
-        driver.quit();
     }
 }
