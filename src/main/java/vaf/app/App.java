@@ -87,7 +87,11 @@ public enum App {
 
     public void scannerDisplaySuccessfulScan(final ScannerProfile scannerProfile) {
 
+        System.out.println("scannerDisplaySuccessfulScan");
+
         Platform.runLater(() -> {
+
+            System.out.println("scannerDisplaySuccessfulScan - runLater");
 
             getScannerDisplay(scannerProfile).ifPresent(ScannerDisplay::successfulScan);
 
@@ -100,7 +104,7 @@ public enum App {
             ButtonType resumeType = new ButtonType("Continuer", ButtonBar.ButtonData.OK_DONE);
             ButtonType quitType = new ButtonType("Quitter", ButtonBar.ButtonData.CANCEL_CLOSE);
 
-            Alert appointmentFoundPopup = new Alert(Alert.AlertType.CONFIRMATION, content, resumeType, quitType);
+            Alert appointmentFoundPopup = new Alert(Alert.AlertType.INFORMATION, content, resumeType, quitType);
             appointmentFoundPopup.setTitle("Rendez vous trouvé !");
             appointmentFoundPopup.setHeaderText("Rendez vous trouvé !");
 

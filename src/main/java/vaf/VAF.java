@@ -31,9 +31,9 @@ public enum VAF {
 
     public final List<Scrapper> scrappers = new ArrayList<>();
 
-    public final CenterSearcher centerSearcher;
-    public final ProfileFactory profileFactory;
-    private final Scanner scanner;
+    public CenterSearcher centerSearcher;
+    public ProfileFactory profileFactory;
+    private Scanner scanner;
     private final AtomicBoolean scanning = new AtomicBoolean(false);
 
     public final BlockingDeque<ScannerProfile> queuedProfiles = new LinkedBlockingDeque<>();
@@ -44,7 +44,7 @@ public enum VAF {
     public final PublishSubject<ScannerProfile> onScannerSuccessfulScan = PublishSubject.create();
     public final PublishSubject<ScannerProfile> onScannerStopScan = PublishSubject.create();
 
-    VAF() {
+    public void setup() {
         updateDates();
 
         this.centerSearcher = new CenterSearcher();
@@ -53,9 +53,6 @@ public enum VAF {
         scrappers.add(profileFactory);
         this.scanner = new Scanner();
         scrappers.add(scanner);
-    }
-
-    public void emptyCall() {
     }
 
     public void updateDates() {

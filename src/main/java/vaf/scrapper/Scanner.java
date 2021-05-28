@@ -33,9 +33,9 @@ public class Scanner extends Scrapper {
         VAF.INSTANCE.onScannerStartScan.onNext(profile);
 
         if (scan(profile)) {
-            VAF.INSTANCE.onScannerSuccessfulScan.onNext(profile);
             VAF.INSTANCE.stopScanning();
             maximize();
+            VAF.INSTANCE.onScannerSuccessfulScan.onNext(profile);
             return;
         }
 
@@ -60,19 +60,14 @@ public class Scanner extends Scrapper {
                     .withTimeout(Duration.ofMillis(1000)) // Might need more
                     .pollingEvery(Duration.ofMillis(50))
                     .ignoring(NoSuchElementException.class)
-//                    .until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@class = \"booking-message booking-message-warning undefined\"]")));
                     .until(ExpectedConditions.presenceOfNestedElementLocatedBy(bookingAvailabilities, By.xpath(".//div[@class = \"booking-message booking-message-warning undefined\"]")));
 
-//            System.out.println("no appointments");
             return false;
         } catch (NoSuchElementException | TimeoutException ignored) {
         }
 
         // Fetch appointment slots
         System.out.println("looking for slots");
-
-//        List<WebElement> slots = new WebDriverWait(driver, Duration.ofSeconds(1))
-//                .until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath("//div[@role = \"button\"]")));
 
         List<WebElement> slots = bookingAvailabilities.findElements(By.xpath(".//div[@role = \"button\"]"));
 
@@ -86,22 +81,35 @@ public class Scanner extends Scrapper {
             System.out.println(title);
 
             LocalDateTime appointmentDate = DateUtils.dateFromTitle(title);
+            System.out.println(appointmentDate);
 
             if (appointmentDate.isAfter(VAF.INSTANCE.searchMaxDate))
                 return false;
 
             LocalTime appointmentTime = LocalTime.of(appointmentDate.getHour(), appointmentDate.getMinute(), 0);
+            System.out.println(appointmentTime);
 
-//            if (appointmentTime.isBefore(VAF.INSTANCE.searchFromTime) || appointmentTime.isAfter(VAF.INSTANCE.searchToTime))
-            if (appointmentTime.isBefore(profile.fromTime()) || appointmentTime.isAfter(profile.toTime()))
+            if (appointmentTime.isBefore(profile.fromTime())) {
+                System.out.println("Appointment is before configured time range");
                 return false;
+            }
+
+            if (appointmentTime.isAfter(profile.toTime())) {
+                System.out.println("Appointment is after configured time range");
+                return false;
+            }
 
             // Try to snatch appointment
             slot.click();
+            System.out.println("Clicked");
 
             // Check if failed (instantly returns false if failed)
-            if (!Action.appointmentAlreadyTaken(driver))
+            if (!Action.appointmentAlreadyTaken(driver)) {
+                System.out.println("Valid appointment");
                 return true;
+            }
+
+            System.out.println("Appointment already taken");
         }
 
         return false;

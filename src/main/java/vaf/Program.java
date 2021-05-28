@@ -36,6 +36,8 @@ public class Program extends Application {
     @Override
     public void start(Stage stage) {
 
+        Browser.selectBrowser();
+
         if (appIcon != null)
             stage.getIcons().add(new Image(appIcon));
         stage.setTitle("VAS");
@@ -44,12 +46,10 @@ public class Program extends Application {
         stage.setOnCloseRequest(windowEvent -> VAF.INSTANCE.shutdown());
         stage.show();
 
-        Browser.selectBrowser();
-
         // To initiate driver loading
         new Thread(() -> {
 
-            VAF.INSTANCE.emptyCall();
+            VAF.INSTANCE.setup();
 
             Platform.runLater(() -> {
                 App.INSTANCE.start(stage);
