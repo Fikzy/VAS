@@ -33,8 +33,8 @@ public class CheckboxGroupController<T> extends VBox {
 
     private void configureCheckbox(final CheckBox checkbox, final T element) {
 
-        if (checkbox.isSelected())
-            selectedElements.add(element);
+        checkbox.setSelected(true);
+        selectedElements.add(element);
 
         checkbox.selectedProperty().addListener((obs, wasSelected, isNowSelected) -> {
             if (isNowSelected)

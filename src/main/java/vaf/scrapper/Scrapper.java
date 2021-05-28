@@ -14,4 +14,12 @@ public abstract class Scrapper {
     public void dispose() {
         driver.quit();
     }
+
+    public void minimize() {
+        this.driver.manage().window().minimize();
+    }
+
+    public void maximize() {
+        this.driver.manage().window().maximize();
+    }
 }

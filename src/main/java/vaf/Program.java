@@ -1,36 +1,61 @@
 package vaf;
 
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.image.Image;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import vaf.app.App;
 import vaf.scrapper.Browser;
 
+import java.io.InputStream;
+
 public class Program extends Application {
 
-    public static String[] urls = {
-//            "https://www.doctolib.fr/centre-de-sante/antony/centre-de-vaccination-antony-bourg-la-reine-sceaux?highlight%5Bspeciality_ids%5D%5B%5D=5494",
-//            "https://www.doctolib.fr/centre-de-vaccinations-internationales/longjumeau/centre-de-vaccination-covid-19-ville-de-longjumeau?highlight%5Bspeciality_ids%5D%5B%5D=5494",
-//            "https://www.doctolib.fr/centre-de-sante/paray-vieille-poste/centre-de-vaccination-covid-19-cpts-nord-essonne-paray-vieille-poste-et-morangis?highlight%5Bspeciality_ids%5D%5B%5D=5494",
-//            "https://www.doctolib.fr/vaccination-covid-19/palaiseau/centre-de-vaccination-covid-19-de-palaiseau-complexe-sportif-j-allain?highlight%5Bspeciality_ids%5D%5B%5D=5494",
-//            "https://www.doctolib.fr/vaccination-covid-19/toulon/centre-de-vaccination-covid-19-du-var?highlight%5Bspeciality_ids%5D%5B%5D=5494",
-    };
+    private static final InputStream appIcon = Main.class.getResourceAsStream("icon.png");
 
-    public static void main(String... args) {
+    public void main(String... args) {
 
         // Start UI
         Application.launch(args);
     }
 
+    private Scene createLoadingScene() {
+        BorderPane p = new BorderPane();
+        VBox vBox = new VBox(new ProgressBar(), new Text("Loading web drivers..."));
+        vBox.setAlignment(Pos.CENTER);
+        p.setCenter(vBox);
+        return new Scene(p, 300, 150);
+    }
+
     @Override
     public void start(Stage stage) {
 
-        stage.setOnCloseRequest(windowEvent -> {
-            VAF.INSTANCE.shutdown();
-            System.exit(0);
-        });
+        if (appIcon != null)
+            stage.getIcons().add(new Image(appIcon));
+        stage.setTitle("VAS");
+
+        stage.setScene(createLoadingScene());
+        stage.setOnCloseRequest(windowEvent -> VAF.INSTANCE.shutdown());
+        stage.show();
 
         Browser.selectBrowser();
 
-        App.INSTANCE.start(stage);
+        // To initiate driver loading
+        new Thread(() -> {
+
+            VAF.INSTANCE.emptyCall();
+
+            Platform.runLater(() -> {
+                App.INSTANCE.start(stage);
+                stage.show();
+            });
+
+        }).start();
     }
 }

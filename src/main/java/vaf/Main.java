@@ -1,7 +1,10 @@
 package vaf;
 
 public class Main {
+
+    public static Program program = new Program();
+
     public static void main(String... args) {
-        Program.main(args);
+        program.main(args);
     }
 }

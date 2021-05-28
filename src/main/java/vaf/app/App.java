@@ -1,12 +1,17 @@
 package vaf.app;
 
 import javafx.application.Platform;
+import javafx.collections.ListChangeListener;
+import javafx.collections.SetChangeListener;
 import javafx.geometry.Bounds;
+import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -21,7 +26,6 @@ import vaf.scrapper.Vaccine;
 
 import java.io.InputStream;
 import java.net.URL;
-import java.time.LocalTime;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,12 +34,14 @@ import java.util.Optional;
 public enum App {
     INSTANCE();
 
-    private static final InputStream appIcon = Main.class.getResourceAsStream("icon.png");
     private static final URL mainCss = Main.class.getResource("main.css");
     private static final InputStream browserIcon = Main.class.getResourceAsStream("internet_browser_icon_64.png");
+    private static final InputStream searchIcon = Main.class.getResourceAsStream("search_icon_64.png");
 
     private final Map<ScannerProfile, ScannerDisplay> scannerDisplays = new HashMap<>();
     private final VBox scannerListView = new VBox();
+
+    private final Stage settingsStage = new Stage();
 
     App() {
 
@@ -80,8 +86,31 @@ public enum App {
     }
 
     public void scannerDisplaySuccessfulScan(final ScannerProfile scannerProfile) {
-        getScannerDisplay(scannerProfile).ifPresent(display -> {
-            Platform.runLater(display::successfulScan);
+
+        Platform.runLater(() -> {
+
+            getScannerDisplay(scannerProfile).ifPresent(ScannerDisplay::successfulScan);
+
+            String content = """
+                    Il ne vous reste plus qu'à vous connecter avec votre compte Doctolib pour récupérer le rendez-vous à votre nom !
+
+                    Si le rendez vous ne vous convient pas ou vous souhaitez effectuer une nouvelle recherche, vous pouvez continuer :
+                    """;
+
+            ButtonType resumeType = new ButtonType("Continuer", ButtonBar.ButtonData.OK_DONE);
+            ButtonType quitType = new ButtonType("Quitter", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+            Alert appointmentFoundPopup = new Alert(Alert.AlertType.CONFIRMATION, content, resumeType, quitType);
+            appointmentFoundPopup.setTitle("Rendez vous trouvé !");
+            appointmentFoundPopup.setHeaderText("Rendez vous trouvé !");
+
+            Optional<ButtonType> result = appointmentFoundPopup.showAndWait();
+            if (result.isEmpty() || result.get() == quitType) {
+                VAF.INSTANCE.shutdown();
+            } else if (result.get() == resumeType) {
+                getScannerDisplay(scannerProfile).ifPresent(ScannerDisplay::resetSuccess);
+                VAF.INSTANCE.startScanning();
+            }
         });
     }
 
@@ -95,20 +124,22 @@ public enum App {
 
         ChoiceDialog<Browser> browserChoiceDialog = new ChoiceDialog<>(Browser.Chrome, EnumSet.allOf(Browser.class));
         browserChoiceDialog.setTitle("Choix du navigateur");
-        browserChoiceDialog.setHeaderText("Choissisez un navigateur present sur votre machine");
+        browserChoiceDialog.setHeaderText("Choissisez un navigateur présent sur votre machine");
         browserChoiceDialog.setContentText("Navigateur :");
         if (browserIcon != null)
             browserChoiceDialog.setGraphic(new ImageView(new Image(browserIcon)));
 
         Alert invalidBrowserAlert = new Alert(Alert.AlertType.WARNING);
-        invalidBrowserAlert.setHeaderText("Merci de selectionner un navigateur presentement installe sur votre machine.");
+        invalidBrowserAlert.setHeaderText("Merci de sélectionner un navigateur présentement installé sur votre machine.");
 
         Optional<Browser> selectedBrowser = Optional.empty();
         while (selectedBrowser.isEmpty()) {
 
             selectedBrowser = browserChoiceDialog.showAndWait();
-            if (selectedBrowser.isEmpty())
-                System.exit(0);
+            if (selectedBrowser.isEmpty()) {
+                VAF.INSTANCE.shutdown();
+                return null;
+            }
 
             Browser.setBrowser(selectedBrowser.get());
             try {
@@ -123,26 +154,31 @@ public enum App {
         return selectedBrowser.get();
     }
 
-    public void openSettings(final Stage mainStage) {
+    public void setupSearchSettings(final Stage mainStage) {
 
         CheckboxGroupController<Vaccine> checkboxGroupController = new CheckboxGroupController<>(
-                "Vaccins recherch\u00E9s :",
+                "Vaccins recherchés :",
                 Vaccine.values()
         );
 
-//        checkboxGroupController.getSelectedElements().addListener((SetChangeListener<? super Vaccine>) change -> {
-//            System.out.println(change.getSet());
-//        });
+        checkboxGroupController.getSelectedElements().addListener((SetChangeListener<? super Vaccine>) change -> {
+            VAF.INSTANCE.searchedVaccines.clear();
+            VAF.INSTANCE.searchedVaccines.addAll(change.getSet());
+            System.out.println(change.getSet());
+            System.out.println(VAF.INSTANCE.searchedVaccines);
+        });
 
         TimeRangeController timeRangeController = new TimeRangeController("Plage de recherche :",
-                LocalTime.of(8, 0), LocalTime.of(22, 0));
-//
-//        timeRangeController.fromTimeProperty().addListener((observable, oldValue, newValue) -> {
-//            System.out.println("From: " + newValue);
-//        });
-//        timeRangeController.toTimeProperty().addListener((observable, oldValue, newValue) -> {
-//            System.out.println("To: " + newValue);
-//        });
+                VAF.INSTANCE.searchFromTime, VAF.INSTANCE.searchToTime);
+
+        timeRangeController.fromTimeProperty().addListener((observable, oldValue, newValue) -> {
+            System.out.println("Set From to: " + newValue);
+            VAF.INSTANCE.searchFromTime = newValue;
+        });
+        timeRangeController.toTimeProperty().addListener((observable, oldValue, newValue) -> {
+            System.out.println("Set To to: " + newValue);
+            VAF.INSTANCE.searchToTime = newValue;
+        });
 
         VBox layout = new VBox(
                 timeRangeController, new Separator(),
@@ -151,8 +187,7 @@ public enum App {
 
         Scene settingsScene = new Scene(layout);
 
-        Stage settingsStage = new Stage();
-        settingsStage.setTitle("Search Settings");
+        settingsStage.setTitle("Paramètres de recherche");
         settingsStage.setWidth(500);
         settingsStage.setHeight(300);
         settingsStage.setMinWidth(settingsStage.getWidth());
@@ -161,8 +196,6 @@ public enum App {
         settingsStage.setScene(settingsScene);
         settingsStage.initModality(Modality.APPLICATION_MODAL);
         settingsStage.initOwner(mainStage);
-
-        settingsStage.show();
     }
 
     public void addCenterDialog(final Stage mainStage) {
@@ -202,24 +235,16 @@ public enum App {
 
     public void start(final Stage mainStage) {
 
-        mainStage.setTitle("VAS");
-
         Button searchSettingsButton = new Button("Paramètres de recherche");
         searchSettingsButton.setOnMouseClicked(event -> {
-            openSettings(mainStage);
-        });
-
-
-        Button addCenterButton = new Button("Ajouter un centre manuellement");
-        addCenterButton.setOnMouseClicked(event -> {
-            addCenterDialog(mainStage);
+            settingsStage.show();
         });
 
         TextField locationSearchBar = new TextField();
         Text locationText = new Text("Lieu de recherche : ");
         Tooltip locationTooltip = new Tooltip("Exemple: \"Renne\", \"Paris 75015\"");
         locationSearchBar.setTooltip(locationTooltip);
-        locationTooltip.setShowDelay(Duration.seconds(0));
+        locationTooltip.setShowDelay(Duration.millis(100));
         locationTooltip.setFont(Font.font("", 14));
         locationTooltip.setOnShowing(s -> {
             Bounds bounds = locationSearchBar.localToScreen(locationSearchBar.getBoundsInLocal());
@@ -227,20 +252,51 @@ public enum App {
             locationSearchBar.getTooltip().setY(bounds.getMaxY());
         });
 
+
+        Button searchButton = new Button();
+        if (searchIcon != null) {
+            ImageView searchImage = new ImageView(new Image(searchIcon));
+            searchImage.setPreserveRatio(true);
+            searchImage.setFitWidth(20);
+            searchImage.setFitHeight(20);
+            searchButton.setGraphic(searchImage);
+        }
+
+        Runnable submitLocationSearch = () -> {
+            VAF.INSTANCE.service.submit(() -> {
+                locationSearchBar.setDisable(true);
+                searchButton.setDisable(true);
+                VAF.INSTANCE.centerSearcher.submitSearch(locationSearchBar.getText());
+                locationSearchBar.setDisable(false);
+                searchButton.setDisable(false);
+                locationSearchBar.clear();
+            });
+        };
+
         locationSearchBar.setOnKeyPressed(event -> {
-            if (event.getCode().equals(KeyCode.ENTER)) {
-                VAF.INSTANCE.service.submit(() -> {
-                    locationSearchBar.setDisable(true);
-                    VAF.INSTANCE.centerSearcher.submitSearch(locationSearchBar.getText());
-//                    if (!VAF.INSTANCE.centerSearcher.search(locationSearch.getText()))
-//                        invalidLocationName.show();
-                    locationSearchBar.setDisable(false);
-                });
-            }
+            if (event.getCode().equals(KeyCode.ENTER))
+                submitLocationSearch.run();
+        });
+        searchButton.setOnAction(event -> {
+            submitLocationSearch.run();
+        });
+
+        Button addCenterButton = new Button("Ajouter un centre manuellement");
+        Tooltip addCenterManuallyTooltip = new Tooltip("Des difficultés avec l'ajout par lieu ? Ajouter un centre depuis une URL");
+        addCenterButton.setTooltip(addCenterManuallyTooltip);
+        addCenterManuallyTooltip.setShowDelay(Duration.millis(100));
+        addCenterManuallyTooltip.setFont(Font.font("", 14));
+        addCenterManuallyTooltip.setOnShowing(s -> {
+            Bounds bounds = addCenterButton.localToScreen(addCenterButton.getBoundsInLocal());
+            addCenterButton.getTooltip().setX(bounds.getMinX() - addCenterButton.getWidth() / 1.5);
+            addCenterButton.getTooltip().setY(bounds.getMaxY());
+        });
+        addCenterButton.setOnMouseClicked(event -> {
+            addCenterDialog(mainStage);
         });
 
         ToolBar toolBar = new ToolBar(
-                searchSettingsButton, new Separator(), addCenterButton, Utils.hSpacer(), locationText, locationSearchBar
+                locationText, locationSearchBar, searchButton, Utils.hSpacer(), addCenterButton, new Separator(), searchSettingsButton
         );
 
         ScrollPane scrollPane = new ScrollPane(scannerListView);
@@ -248,21 +304,57 @@ public enum App {
         scrollPane.setFitToHeight(true);
         scrollPane.setFitToWidth(true);
 
-        VBox layout = new VBox(toolBar, scrollPane);
+        HBox centerListTitle = new HBox(new Text("Centres en cours de recherche :"));
+        centerListTitle.setPadding(new Insets(10, 10, 5, 10));
+        centerListTitle.setVisible(false);
+        centerListTitle.setManaged(false);
+        centerListTitle.managedProperty().bind(centerListTitle.visibleProperty());
+
+        VBox layout = new VBox(toolBar, centerListTitle, scrollPane);
         scannerListView.prefWidthProperty().bind(layout.widthProperty());
         scannerListView.prefHeightProperty().bind(layout.heightProperty());
 
+        Text infoPanelTitle = new Text("Impossible de trouver un rendez vous de vaccination ?\nVaccine Appointment Snatcher est là pour vous !");
+        infoPanelTitle.setFont(Font.font("", 18));
+        Text infoPanelContent = new Text(
+                """
+                        Ce logiciel va vous aider à mettre la main sur un rendez-vous de vaccination en le bloquant pour vous.
+                        Une fois un rendez-vous trouvé, vous aurez une dizaine de minutes pour le récuperer avec votre compte
+                        Doctolib dans le navigateur qui s'affichera à l'écran.
+                                                
+                        Pour le bon fonctionnement du logiciel, veuillez ne pas fermer la fenêtre de navigation qui s'ouvre
+                        au démarage, c'est là que toute la magie se passe !
+                                                
+                        Vous pouvez commencer par paramétrer vos préférences de recherche dans "Paramètres de recherche".
+                                                
+                        Il vous suffira ensuite d'ajouter des centres à l'aide de la fonction de recherche par lieu (bar de recherche en haut à gauche).
+                        """
+        );
+        infoPanelContent.setFont(Font.font("", 14));
+        VBox infoPanel = new VBox(infoPanelTitle, infoPanelContent);
+        infoPanel.setPadding(new Insets(10));
+        infoPanel.setSpacing(10);
+        infoPanel.setManaged(false);
+        infoPanel.managedProperty().bind(infoPanel.visibleProperty());
+
+        scannerListView.getChildren().add(infoPanel);
+
+        scannerListView.getChildren().addListener((ListChangeListener<? super Node>) observable -> {
+            boolean noScanners = observable.getList().size() == 1;
+            infoPanel.setVisible(noScanners);
+            centerListTitle.setVisible(!noScanners);
+        });
+
         Scene scene = new Scene(layout);
-        scene.getRoot().getStylesheets().add(mainCss.toString());
+        if (mainCss != null)
+            scene.getRoot().getStylesheets().add(mainCss.toString());
 
         mainStage.setWidth(800);
         mainStage.setHeight(500);
         mainStage.setMinWidth(mainStage.getWidth());
         mainStage.setMinHeight(mainStage.getHeight());
         mainStage.setScene(scene);
-        if (appIcon != null)
-            mainStage.getIcons().add(new Image(appIcon));
 
-        mainStage.show();
+        setupSearchSettings(mainStage);
     }
 }

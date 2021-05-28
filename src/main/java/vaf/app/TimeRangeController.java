@@ -11,8 +11,8 @@ import java.time.LocalTime;
 
 public class TimeRangeController extends HBox {
 
-    private ObjectProperty<LocalTime> fromTime = new SimpleObjectProperty<>();
-    private ObjectProperty<LocalTime> toTime = new SimpleObjectProperty<>();
+    private final ObjectProperty<LocalTime> fromTime = new SimpleObjectProperty<>();
+    private final ObjectProperty<LocalTime> toTime = new SimpleObjectProperty<>();
 
     public LocalTime getFromTime() {
         return fromTime.get();
@@ -37,11 +37,12 @@ public class TimeRangeController extends HBox {
         this.setPadding(new Insets(10));
 
         TimeSpinner fromTimeSpinner = new TimeSpinner(initialFrom);
-        Text toText = new Text("-"); // à : u00E0
+        Text fromText = new Text("h à ");
         TimeSpinner toTimeSpinner = new TimeSpinner(initialTo);
+        Text toText = new Text("h");
         Text title = new Text(label);
 
-        this.getChildren().addAll(title, fromTimeSpinner, toText, toTimeSpinner);
+        this.getChildren().addAll(title, fromTimeSpinner, fromText, toTimeSpinner, toText);
 
         fromTime.bind(fromTimeSpinner.valueProperty());
         toTime.bind(toTimeSpinner.valueProperty());

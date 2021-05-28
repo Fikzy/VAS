@@ -4,13 +4,10 @@ import org.openqa.selenium.*;
 import vaf.VAF;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ProfileFactory extends Scrapper {
-
-    private static List<Vaccine> vaccinesToCheck = Arrays.asList(Vaccine.values());
 
 //    private final PublishProcessor<String> urlsToGenerateFrom = PublishProcessor.create();
 
@@ -57,7 +54,8 @@ public class ProfileFactory extends Scrapper {
         vaccineSelections.forEach(selection -> {
             final List<Action> actionList = new ArrayList<>(List.copyOf(actions));
             actionList.add(Action.selectVaccine(selection.selectIndex()));
-            final ScannerProfile scannerProfile = new ScannerProfile(url, actionList, centerTitle, selection.vaccine());
+            final ScannerProfile scannerProfile = new ScannerProfile(url, actionList, centerTitle, selection.vaccine(),
+                    VAF.INSTANCE.searchFromTime, VAF.INSTANCE.searchToTime);
             VAF.INSTANCE.addScannerProfile(scannerProfile);
         });
     }
@@ -87,7 +85,7 @@ public class ProfileFactory extends Scrapper {
 
         List<VaccineSelection> vaccineSelections = new ArrayList<>();
         for (int i = 0; i < motives.size(); i++) {
-            for (Vaccine vaccine : vaccinesToCheck) {
+            for (Vaccine vaccine : VAF.INSTANCE.searchedVaccines) {
                 if (vaccine.pattern.matcher(motives.get(i)).find())
                     vaccineSelections.add(new VaccineSelection(vaccine, i));
             }

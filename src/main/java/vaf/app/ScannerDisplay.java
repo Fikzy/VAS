@@ -4,6 +4,7 @@ import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.Separator;
 import javafx.scene.control.ToolBar;
 import javafx.scene.text.Text;
 import vaf.VAF;
@@ -20,8 +21,9 @@ public class ScannerDisplay extends ToolBar {
 
     final ToggleSwitch toggleSwitch;
     final Hyperlink centerTitle;
-    final Text vaccineName;
     final ProgressIndicator progressIndicator;
+    final Text vaccineName;
+    final Text timeRange;
     final Button deleteButton;
 
     public ScannerDisplay(final ScannerProfile scannerProfile) {
@@ -33,10 +35,6 @@ public class ScannerDisplay extends ToolBar {
         this.toggleSwitch = new ToggleSwitch();
         this.toggleSwitch.switchOnProperty().set(true);
 
-        this.progressIndicator = new ProgressIndicator(0);
-        this.progressIndicator.setMaxSize(20, 20);
-        this.progressIndicator.setVisible(false);
-
         this.centerTitle = new Hyperlink(scannerProfile.centerTitle());
         this.centerTitle.setOnAction(event -> {
             try {
@@ -46,17 +44,23 @@ public class ScannerDisplay extends ToolBar {
             }
         });
 
+        this.progressIndicator = new ProgressIndicator(0);
+        this.progressIndicator.setMaxSize(20, 20);
+        this.progressIndicator.setVisible(false);
+
         this.vaccineName = new Text(scannerProfile.selectedVaccine().name());
 
-        this.deleteButton = new Button("Remove"); // ✕
+        this.timeRange = new Text(String.format("%sh - %sh", scannerProfile.fromTime(), scannerProfile.toTime()));
+
+        this.deleteButton = new Button("Supprimer"); // ✕
         this.deleteButton.getStyleClass().add("remove-button");
 
         this.setPadding(new Insets(10));
         this.getStyleClass().add("scanner-display");
 
         this.getItems().addAll(
-                toggleSwitch, Utils.hSpacer(10), centerTitle, progressIndicator, Utils.hSpacer(),
-                vaccineName, Utils.hSpacer(20), deleteButton
+                toggleSwitch, Utils.spacer(10), centerTitle, progressIndicator, Utils.hSpacer(),
+                vaccineName, new Separator(), timeRange, Utils.spacer(20), deleteButton
         );
 
         this.toggleSwitch.switchOnProperty().addListener((observableValue, oldValue, newValue) -> {
@@ -76,6 +80,10 @@ public class ScannerDisplay extends ToolBar {
     public void successfulScan() {
         progressIndicator.setVisible(false);
         pseudoClassStateChanged(PseudoClass.getPseudoClass("success"), true);
+    }
+
+    public void resetSuccess() {
+        pseudoClassStateChanged(PseudoClass.getPseudoClass("success"), false);
     }
 
     public void stopScanning() {

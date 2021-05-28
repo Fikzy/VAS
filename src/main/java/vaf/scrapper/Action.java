@@ -54,7 +54,7 @@ public interface Action {
     static boolean appointmentAlreadyTaken(final WebDriver driver) {
         try {
             System.out.println("looking for popup");
-            new WebDriverWait(driver, Duration.ofMillis(500))
+            new WebDriverWait(driver, Duration.ofMillis(1500))
                     .until(ExpectedConditions.presenceOfElementLocated(By.xpath("//button[@aria-label = 'close-toast']")));
             System.out.println("popup found!");
             return true;

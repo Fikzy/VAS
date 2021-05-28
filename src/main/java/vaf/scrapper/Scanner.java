@@ -10,6 +10,8 @@ import vaf.DateUtils;
 import vaf.VAF;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 public class Scanner extends Scrapper {
@@ -17,7 +19,7 @@ public class Scanner extends Scrapper {
     public Scanner() {
         super(false);
 
-        this.driver.manage().window().minimize();
+        minimize();
     }
 
     public void scan() {
@@ -33,11 +35,8 @@ public class Scanner extends Scrapper {
         if (scan(profile)) {
             VAF.INSTANCE.onScannerSuccessfulScan.onNext(profile);
             VAF.INSTANCE.stopScanning();
-            this.driver.manage().window().maximize();
+            maximize();
             return;
-            // TODO:
-            // - Prompt user to resume in case of failure
-            // - Allow pause?
         }
 
         VAF.INSTANCE.onScannerStopScan.onNext(profile);
@@ -86,9 +85,18 @@ public class Scanner extends Scrapper {
             String title = slot.getAttribute("title");
             System.out.println(title);
 
-            if (DateUtils.dateFromTitle(title).isAfter(VAF.INSTANCE.maxDate))
+            LocalDateTime appointmentDate = DateUtils.dateFromTitle(title);
+
+            if (appointmentDate.isAfter(VAF.INSTANCE.searchMaxDate))
                 return false;
 
+            LocalTime appointmentTime = LocalTime.of(appointmentDate.getHour(), appointmentDate.getMinute(), 0);
+
+//            if (appointmentTime.isBefore(VAF.INSTANCE.searchFromTime) || appointmentTime.isAfter(VAF.INSTANCE.searchToTime))
+            if (appointmentTime.isBefore(profile.fromTime()) || appointmentTime.isAfter(profile.toTime()))
+                return false;
+
+            // Try to snatch appointment
             slot.click();
 
             // Check if failed (instantly returns false if failed)

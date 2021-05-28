@@ -14,16 +14,16 @@ import java.util.stream.Collectors;
 
 public class CenterSearcher extends Scrapper {
 
-    private final PublishProcessor<String> urlsToSearch = PublishProcessor.create();
+    private final PublishProcessor<String> locationsToSearch = PublishProcessor.create();
 
     public CenterSearcher() {
         super(true);
 
-        urlsToSearch.subscribe(this::search);
+        locationsToSearch.subscribe(this::search);
     }
 
-    public void submitSearch(final String url) {
-        urlsToSearch.onNext(url);
+    public void submitSearch(final String location) {
+        locationsToSearch.onNext(location);
     }
 
     public boolean search(final String input) {

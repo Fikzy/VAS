@@ -7,6 +7,7 @@ import vaf.scrapper.Scanner;
 import vaf.scrapper.*;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.BlockingDeque;
@@ -18,7 +19,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public enum VAF {
     INSTANCE();
 
-    public LocalDateTime maxDate;
+    public LocalTime searchFromTime = LocalTime.of(7, 0);
+    public LocalTime searchToTime = LocalTime.of(22, 0);
+    public LocalDateTime searchMaxDate;
+    public Set<Vaccine> searchedVaccines = new HashSet<>(Arrays.asList(Vaccine.values()));
 
     public final ScheduledExecutorService service = Executors.newScheduledThreadPool(8);
     private final Timer timer = new Timer();
@@ -27,9 +31,9 @@ public enum VAF {
 
     public final List<Scrapper> scrappers = new ArrayList<>();
 
-    public final CenterSearcher centerSearcher = new CenterSearcher();
-    public final ProfileFactory profileFactory = new ProfileFactory();
-    private final Scanner scanner = new Scanner();
+    public final CenterSearcher centerSearcher;
+    public final ProfileFactory profileFactory;
+    private final Scanner scanner;
     private final AtomicBoolean scanning = new AtomicBoolean(false);
 
     public final BlockingDeque<ScannerProfile> queuedProfiles = new LinkedBlockingDeque<>();
@@ -41,19 +45,26 @@ public enum VAF {
     public final PublishSubject<ScannerProfile> onScannerStopScan = PublishSubject.create();
 
     VAF() {
-        updateMaxDate();
+        updateDates();
+
+        this.centerSearcher = new CenterSearcher();
         scrappers.add(centerSearcher);
+        this.profileFactory = new ProfileFactory();
         scrappers.add(profileFactory);
+        this.scanner = new Scanner();
         scrappers.add(scanner);
     }
 
-    public void updateMaxDate() {
-        this.maxDate = DateUtils.getZeroedDateOffset(2);
+    public void emptyCall() {
+    }
+
+    public void updateDates() {
+        this.searchMaxDate = DateUtils.getZeroedDateOffset(2);
         Date nextUpdate = Date.from(DateUtils.getZeroedDateOffset(1).atZone(ZoneId.systemDefault()).toInstant());
         this.timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                updateMaxDate();
+                updateDates();
             }
         }, nextUpdate);
     }
@@ -103,6 +114,7 @@ public enum VAF {
     public void startScanning() {
         if (scanning.get())
             return;
+        scanner.minimize();
         scanning.set(true);
         System.out.println("Started scanning");
         service.submit(() -> {
@@ -119,8 +131,10 @@ public enum VAF {
     }
 
     public void shutdown() {
+        System.out.println("Shutting down...");
         stopScanning();
         service.shutdown();
         scrappers.forEach(Scrapper::dispose);
+        System.exit(0);
     }
 }

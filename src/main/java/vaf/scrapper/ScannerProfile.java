@@ -1,12 +1,14 @@
 package vaf.scrapper;
 
+import java.time.LocalTime;
 import java.util.List;
 
-public record ScannerProfile(String url, List<Action> actions, String centerTitle, Vaccine selectedVaccine) {
+public record ScannerProfile(String url, List<Action> actions, String centerTitle, Vaccine selectedVaccine,
+                             LocalTime fromTime, LocalTime toTime) {
 
     @Override
     public String toString() {
-        return String.format("%s | %s", centerTitle, selectedVaccine);
+        return String.format("%s | %s | %s - %s", centerTitle, selectedVaccine, fromTime, toTime);
     }
 
     @Override
