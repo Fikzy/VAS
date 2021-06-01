@@ -1,9 +1,6 @@
 package vaf.scrapper;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.TimeoutException;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 import vaf.DateUtils;
@@ -81,26 +78,42 @@ public class Scanner extends Scrapper {
             System.out.println(title);
 
             LocalDateTime appointmentDate = DateUtils.dateFromTitle(title);
-            System.out.println(appointmentDate);
+            if (appointmentDate == null)
+                continue;
 
-            if (appointmentDate.isAfter(VAF.INSTANCE.searchMaxDate))
+            System.out.println(appointmentDate);
+            System.out.println(VAF.INSTANCE.searchMaxDate);
+
+            System.out.println("Checking if date is after max date");
+            if (appointmentDate.isAfter(VAF.INSTANCE.searchMaxDate)) {
+                System.out.println("Appointment after max date");
                 return false;
+            }
 
             LocalTime appointmentTime = LocalTime.of(appointmentDate.getHour(), appointmentDate.getMinute(), 0);
             System.out.println(appointmentTime);
 
-            if (appointmentTime.isBefore(profile.fromTime())) {
-                System.out.println("Appointment is before configured time range");
-                return false;
-            }
+//            if (DateUtils.isLocalDateTimeInLocalTimeRange(appointmentDate, profile.fromTime(), profile.toTime())) {
+//                System.out.println("Appointment doesn't fall within time range");
+//                return false;
+//            }
 
-            if (appointmentTime.isAfter(profile.toTime())) {
-                System.out.println("Appointment is after configured time range");
+            System.out.println("Checking if date falls whithin range");
+            if (appointmentTime.isBefore(profile.fromTime()) || appointmentTime.isAfter(profile.toTime())) {
+                System.out.println("Appointment doesn't fall within time range");
                 return false;
             }
 
             // Try to snatch appointment
-            slot.click();
+            System.out.println("Clicking");
+            try {
+                slot.click();
+//                new Actions(driver).moveToElement(slot).click().perform();
+//                slot.sendKeys(Keys.ENTER);
+            } catch (StaleElementReferenceException ignored) {
+                System.err.println("Slot element is no longer valid");
+                continue;
+            }
             System.out.println("Clicked");
 
             // Check if failed (instantly returns false if failed)

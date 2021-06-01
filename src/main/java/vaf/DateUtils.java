@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
@@ -15,12 +16,19 @@ public class DateUtils {
 
     // Example: jeu. 20 mai 15:10
     public static DateTimeFormatter doctolibDateFormat = new DateTimeFormatterBuilder()
-            .appendPattern("EEE dd MMM HH:mm")
+            .appendPattern("EEE d[d] MMM HH:mm")
             .parseDefaulting(ChronoField.YEAR, calendar.get(Calendar.YEAR))
             .toFormatter(Locale.FRANCE);
 
     public static LocalDateTime dateFromTitle(final String title) {
-        return LocalDateTime.parse(title, doctolibDateFormat);
+        try {
+            return LocalDateTime.parse(title, doctolibDateFormat);
+        } catch (DateTimeParseException e) {
+            e.printStackTrace();
+            System.err.println("Failed to parse: " + title);
+            VAF.INSTANCE.shutdown();
+            return null;
+        }
     }
 
     public static LocalDateTime zeroedCurrentDate() {
@@ -33,5 +41,11 @@ public class DateUtils {
 
     public static LocalTime localTimeRoundedToFiveMinutes(final LocalTime time) {
         return time.minusMinutes(time.getMinute() % 5).truncatedTo(ChronoUnit.MINUTES);
+    }
+
+    public static boolean isLocalDateTimeInLocalTimeRange(final LocalDateTime date, final LocalTime rangeStart,
+                                                          final LocalTime rangeEnd) {
+        return date.getHour() >= rangeStart.getHour() && date.getMinute() >= rangeStart.getMinute() &&
+                date.getHour() <= rangeEnd.getHour() && date.getMinute() <= rangeEnd.getMinute();
     }
 }

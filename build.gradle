@@ -31,7 +31,7 @@ dependencies {
 
 application {
     mainClassName = 'vaf.Main'
-    applicationName = 'VAF'
+    applicationName = 'VAS'
 }
 
 runtime {
@@ -61,7 +61,7 @@ runtime {
         jvmArgs.add('-Djdk.tls.client.protocols=TLSv1.1,TLSv1.2')
         jvmArgs.add('-Dhttps.protocols=TLSv1.1,TLSv1.2')
 
-        noConsole = true
+//        noConsole = true
     }
     jpackage {
         // Uncomment and adjust the following line if your runtime task is configured to generate images for multiple platforms
