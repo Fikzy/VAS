@@ -3,6 +3,7 @@ package vaf.scrapper;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import vaf.DateUtils;
 import vaf.VAF;
 
@@ -107,10 +108,9 @@ public class Scanner extends Scrapper {
             // Try to snatch appointment
             System.out.println("Clicking");
             try {
+                new WebDriverWait(driver, Duration.ofMillis(1000)).until(ExpectedConditions.elementToBeClickable(slot));
                 slot.click();
-//                new Actions(driver).moveToElement(slot).click().perform();
-//                slot.sendKeys(Keys.ENTER);
-            } catch (StaleElementReferenceException ignored) {
+            } catch (TimeoutException | StaleElementReferenceException ignored) {
                 System.err.println("Slot element is no longer valid");
                 continue;
             }
