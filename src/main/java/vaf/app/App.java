@@ -237,6 +237,21 @@ public enum App {
         invalidUrlWarning.setHeaderText("L'url fournie est invalide.");
     }
 
+    public void submitLocationSearch(final TextField locationSearchBar, final Button searchButton) {
+
+        if (locationSearchBar.getText().isEmpty())
+            return;
+
+        VAF.INSTANCE.service.submit(() -> {
+            locationSearchBar.setDisable(true);
+            searchButton.setDisable(true);
+            VAF.INSTANCE.centerSearcher.submitSearch(locationSearchBar.getText());
+            locationSearchBar.setDisable(false);
+            searchButton.setDisable(false);
+            locationSearchBar.clear();
+        });
+    }
+
     public void start(final Stage mainStage) {
 
         Button searchSettingsButton = new Button("Paramètres de recherche");
@@ -279,10 +294,13 @@ public enum App {
 
         locationSearchBar.setOnKeyPressed(event -> {
             if (event.getCode().equals(KeyCode.ENTER))
-                submitLocationSearch.run();
+                submitLocationSearch(locationSearchBar, searchButton);
+//                submitLocationSearch.run();
         });
         searchButton.setOnAction(event -> {
-            submitLocationSearch.run();
+            if (!locationSearchBar.getText().isEmpty())
+                submitLocationSearch(locationSearchBar, searchButton);
+//                submitLocationSearch.run();
         });
 
         Button addCenterButton = new Button("Ajouter un centre manuellement");
