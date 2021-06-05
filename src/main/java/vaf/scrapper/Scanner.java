@@ -86,19 +86,8 @@ public class Scanner extends Scrapper {
 
             VAF.logger.info(appointmentDate.toString());
 
-            VAF.logger.info("Checking if date is after max date");
-            if (appointmentDate.isAfter(VAF.INSTANCE.searchMaxDate)) {
-                VAF.logger.info("Appointment after max date");
-                return false;
-            }
-
             LocalTime appointmentTime = LocalTime.of(appointmentDate.getHour(), appointmentDate.getMinute(), 0);
             VAF.logger.info(appointmentTime.toString());
-
-//            if (DateUtils.isLocalDateTimeInLocalTimeRange(appointmentDate, profile.fromTime(), profile.toTime())) {
-//                VAF.logger.info("Appointment doesn't fall within time range");
-//                return false;
-//            }
 
             VAF.logger.info("Checking if date falls whithin range");
             if (appointmentTime.isBefore(profile.fromTime()) || appointmentTime.isAfter(profile.toTime())) {

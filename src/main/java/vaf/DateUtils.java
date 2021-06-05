@@ -48,10 +48,4 @@ public class DateUtils {
     public static LocalTime localTimeRoundedToFiveMinutes(final LocalTime time) {
         return time.minusMinutes(time.getMinute() % 5).truncatedTo(ChronoUnit.MINUTES);
     }
-
-    public static boolean isLocalDateTimeInLocalTimeRange(final LocalDateTime date, final LocalTime rangeStart,
-                                                          final LocalTime rangeEnd) {
-        return date.getHour() >= rangeStart.getHour() && date.getMinute() >= rangeStart.getMinute() &&
-                date.getHour() <= rangeEnd.getHour() && date.getMinute() <= rangeEnd.getMinute();
-    }
 }
