@@ -9,19 +9,9 @@ import java.util.stream.Collectors;
 
 public class ProfileFactory extends Scrapper {
 
-//    private static final Logger logger = LogManager.getLogger(ProfileFactory.class);
-
-//    private final PublishProcessor<String> urlsToGenerateFrom = PublishProcessor.create();
-
     public ProfileFactory() {
         super(true);
-
-//        urlsToGenerateFrom.subscribe(this::generateProfiles);
     }
-
-//    public void submitUrl(final String url) {
-//        urlsToGenerateFrom.onNext(url);
-//    }
 
     public boolean generateProfiles(final String url) {
 

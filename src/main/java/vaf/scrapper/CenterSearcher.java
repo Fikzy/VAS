@@ -14,8 +14,6 @@ import java.util.stream.Collectors;
 
 public class CenterSearcher extends Scrapper {
 
-//    private static final Logger logger = LoggerFactory.getLogger(CenterSearcher.class);
-
     private final PublishProcessor<String> locationsToSearch = PublishProcessor.create();
 
     public CenterSearcher() {
@@ -53,9 +51,7 @@ public class CenterSearcher extends Scrapper {
             return linkElement.getAttribute("href");
         }).collect(Collectors.toList());
 
-//        links.forEach(System.out::println);
         links.forEach(VAF.INSTANCE.profileFactory::generateProfiles);
-//        links.forEach(VAF.INSTANCE.profileFactory::submitUrl);
 
         VAF.INSTANCE.startScanning();
 

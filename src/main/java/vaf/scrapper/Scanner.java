@@ -14,8 +14,6 @@ import java.util.List;
 
 public class Scanner extends Scrapper {
 
-//    private static final VAF.logger VAF.logger = VAF.loggerFactory.getVAF.logger(Scanner.class);
-
     public Scanner() {
         super(false);
 

@@ -217,7 +217,6 @@ public enum App {
         textInputDialog.initOwner(mainStage);
 
         textInputDialog.resultProperty().addListener((observable, oldValue, newValue) -> {
-//            VAF.INSTANCE.profileFactory.submitUrl(newValue);
             if (VAF.INSTANCE.profileFactory.generateProfiles(newValue))
                 VAF.INSTANCE.startScanning();
             else
@@ -283,26 +282,13 @@ public enum App {
             searchButton.setGraphic(searchImage);
         }
 
-        Runnable submitLocationSearch = () -> {
-            VAF.INSTANCE.service.submit(() -> {
-                locationSearchBar.setDisable(true);
-                searchButton.setDisable(true);
-                VAF.INSTANCE.centerSearcher.submitSearch(locationSearchBar.getText());
-                locationSearchBar.setDisable(false);
-                searchButton.setDisable(false);
-                locationSearchBar.clear();
-            });
-        };
-
         locationSearchBar.setOnKeyPressed(event -> {
             if (event.getCode().equals(KeyCode.ENTER))
                 submitLocationSearch(locationSearchBar, searchButton);
-//                submitLocationSearch.run();
         });
         searchButton.setOnAction(event -> {
             if (!locationSearchBar.getText().isEmpty())
                 submitLocationSearch(locationSearchBar, searchButton);
-//                submitLocationSearch.run();
         });
 
         Button addCenterButton = new Button("Ajouter un centre manuellement");
