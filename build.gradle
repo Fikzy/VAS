@@ -76,6 +76,8 @@ runtime {
         // Uncomment and adjust the following line if your runtime task is configured to generate images for multiple platforms
 //        targetPlatformName = "mac"
 
+        appVersion = "1.1"
+
         def currentOs = org.gradle.internal.os.OperatingSystem.current()
         def imgType = currentOs.windows ? 'ico' : currentOs.macOsX ? 'icns' : 'png'
         imageOptions += ['--icon', "src/main/resources/vaf/icon.$imgType"]

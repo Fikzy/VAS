@@ -4,7 +4,7 @@ Marre de rater les rendez-vous de vaccinantion sur Doctolib ? VAS est là pour v
 
 ## Installation
 
-- Windows : [VAS-1.0.exe](https://github.com/Fikzy/VAS/releases/download/release-1.0/VAS-1.0.exe)
+- Windows : [VAS-1.1.exe](https://github.com/Fikzy/VAS/releases/download/release-1.1/VAS-1.1.exe)
 - Linux : (incoming)
 - Mac : (incoming)
 
