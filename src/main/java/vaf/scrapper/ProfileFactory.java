@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 
 public class ProfileFactory extends Scrapper {
 
+//    private static final Logger logger = LogManager.getLogger(ProfileFactory.class);
+
 //    private final PublishProcessor<String> urlsToGenerateFrom = PublishProcessor.create();
 
     public ProfileFactory() {
@@ -74,7 +76,7 @@ public class ProfileFactory extends Scrapper {
         try {
             bookingMotiveElement = driver.findElement(By.id("booking_motive"));
         } catch (NoSuchElementException e) {
-            System.err.println("Booking motive not found...");
+            VAF.logger.error("Booking motive not found...");
             return List.of();
         }
 

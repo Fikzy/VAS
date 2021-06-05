@@ -34,6 +34,8 @@ import java.util.Optional;
 public enum App {
     INSTANCE();
 
+//    private static final VAF.logger VAF.logger = LogManager.getVAF.logger(App.class);
+
     private static final URL mainCss = Main.class.getResource("main.css");
     private static final InputStream browserIcon = Main.class.getResourceAsStream("internet_browser_icon_64.png");
     private static final InputStream searchIcon = Main.class.getResourceAsStream("search_icon_64.png");
@@ -87,11 +89,11 @@ public enum App {
 
     public void scannerDisplaySuccessfulScan(final ScannerProfile scannerProfile) {
 
-        System.out.println("scannerDisplaySuccessfulScan");
+        VAF.logger.info("scannerDisplaySuccessfulScan");
 
         Platform.runLater(() -> {
 
-            System.out.println("scannerDisplaySuccessfulScan - runLater");
+            VAF.logger.info("scannerDisplaySuccessfulScan - runLater");
 
             getScannerDisplay(scannerProfile).ifPresent(ScannerDisplay::successfulScan);
 
@@ -168,19 +170,19 @@ public enum App {
         checkboxGroupController.getSelectedElements().addListener((SetChangeListener<? super Vaccine>) change -> {
             VAF.INSTANCE.searchedVaccines.clear();
             VAF.INSTANCE.searchedVaccines.addAll(change.getSet());
-            System.out.println(change.getSet());
-            System.out.println(VAF.INSTANCE.searchedVaccines);
+            VAF.logger.info(change.getSet().toString());
+            VAF.logger.info(VAF.INSTANCE.searchedVaccines.toString());
         });
 
         TimeRangeController timeRangeController = new TimeRangeController("Plage de recherche :",
                 VAF.INSTANCE.searchFromTime, VAF.INSTANCE.searchToTime);
 
         timeRangeController.fromTimeProperty().addListener((observable, oldValue, newValue) -> {
-            System.out.println("Set From to: " + newValue);
+            VAF.logger.info("Set From to: " + newValue);
             VAF.INSTANCE.searchFromTime = newValue;
         });
         timeRangeController.toTimeProperty().addListener((observable, oldValue, newValue) -> {
-            System.out.println("Set To to: " + newValue);
+            VAF.logger.info("Set To to: " + newValue);
             VAF.INSTANCE.searchToTime = newValue;
         });
 

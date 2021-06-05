@@ -78,7 +78,7 @@ public enum Browser {
     static {
         final String baseArguments = "start-minimized --no-sandbox --disable-gpu" +
                 "--disable-crash-reporter --disable-extensions --disable-in-process-stack-traces" +
-                "--disable-logging --disable-dev-shm-usage --log-level=3 --output=/dev/null";
+                "--disable-logging --disable-dev-shm-usage --log-level=3 --silent --output=/dev/null";
         chromeBase.addArguments(baseArguments);
         chromeHeadless.addArguments(baseArguments).addArguments("--headless");
     }

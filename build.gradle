@@ -13,6 +13,9 @@ repositories {
 
 dependencies {
 
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
+
     implementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '4.0.0-beta-3'
 
     implementation 'io.github.bonigarcia:webdrivermanager:4.4.3'
@@ -26,11 +29,17 @@ dependencies {
 
     implementation 'org.controlsfx:controlsfx:11.1.0'
 
-    implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.0-alpha1'
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.14.1'
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.14.1'
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.14.1'
+}
+
+test {
+    useJUnitPlatform()
 }
 
 application {
-    mainClassName = 'vaf.Main'
+    mainClass.set('vaf.Main')
     applicationName = 'VAS'
 }
 
@@ -61,7 +70,7 @@ runtime {
         jvmArgs.add('-Djdk.tls.client.protocols=TLSv1.1,TLSv1.2')
         jvmArgs.add('-Dhttps.protocols=TLSv1.1,TLSv1.2')
 
-//        noConsole = true
+        setNoConsole(false)
     }
     jpackage {
         // Uncomment and adjust the following line if your runtime task is configured to generate images for multiple platforms

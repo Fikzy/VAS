@@ -5,11 +5,14 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import vaf.VAF;
 
 import java.time.Duration;
 
 @FunctionalInterface
 public interface Action {
+
+//    Logger logger = LogManager.getLogger(Action.class);
 
     void accept(WebDriver driver);
 
@@ -53,13 +56,13 @@ public interface Action {
 
     static boolean appointmentAlreadyTaken(final WebDriver driver) {
         try {
-            System.out.println("looking for popup");
+            VAF.logger.info("looking for popup");
             new WebDriverWait(driver, Duration.ofMillis(1000))
                     .until(ExpectedConditions.presenceOfElementLocated(By.xpath("//button[@aria-label = 'close-toast']")));
-            System.out.println("popup found!");
+            VAF.logger.info("popup found!");
             return true;
         } catch (NoSuchElementException | TimeoutException e) {
-            System.out.println("popup not found");
+            VAF.logger.info("popup not found");
             return false;
         }
     }

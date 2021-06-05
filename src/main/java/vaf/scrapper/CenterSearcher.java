@@ -14,6 +14,8 @@ import java.util.stream.Collectors;
 
 public class CenterSearcher extends Scrapper {
 
+//    private static final Logger logger = LoggerFactory.getLogger(CenterSearcher.class);
+
     private final PublishProcessor<String> locationsToSearch = PublishProcessor.create();
 
     public CenterSearcher() {
@@ -29,7 +31,7 @@ public class CenterSearcher extends Scrapper {
     public boolean search(final String input) {
 
         final String location = input.replace(' ', '-').toLowerCase(Locale.ROOT);
-        System.out.println("Searching location: " + location);
+        VAF.logger.info("Searching location: " + location);
 
         driver.get("https://www.doctolib.fr/vaccination-covid-19/" + location + "?ref_visit_motive_ids[]=6970&ref_visit_motive_ids[]=7005&force_max_limit=1");
 
@@ -37,7 +39,7 @@ public class CenterSearcher extends Scrapper {
         try {
             resultsContainer = driver.findElement(By.className("results"));
         } catch (NoSuchElementException ignored) {
-            System.err.println("Invalid Doctolib location search");
+            VAF.logger.error("Invalid Doctolib location search");
             Platform.runLater(App.INSTANCE::invalidLocationSearchWarning);
             return false;
         }

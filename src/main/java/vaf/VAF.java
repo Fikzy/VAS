@@ -3,9 +3,14 @@ package vaf;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
 import vaf.scrapper.Scanner;
 import vaf.scrapper.*;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -18,6 +23,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public enum VAF {
     INSTANCE();
+
+    static LoggerContext context = (org.apache.logging.log4j.core.LoggerContext) LogManager.getContext(false);
+    static URI configFile;
+
+    static {
+        try {
+            configFile = Objects.requireNonNull(Main.class.getResource("log4j2.xml")).toURI();
+            context.setConfigLocation(configFile);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        context.setConfigLocation(configFile);
+    }
+
+    public static final Logger logger = LogManager.getRootLogger();
 
     public LocalTime searchFromTime = LocalTime.of(7, 0);
     public LocalTime searchToTime = LocalTime.of(22, 0);
@@ -45,6 +65,9 @@ public enum VAF {
     public final PublishSubject<ScannerProfile> onScannerStopScan = PublishSubject.create();
 
     public void setup() {
+
+        logger.info("info - Setting up VAS...");
+
         updateDates();
 
         this.centerSearcher = new CenterSearcher();
@@ -83,11 +106,11 @@ public enum VAF {
     public void addScannerProfile(final ScannerProfile profile) {
 
         if (profiles.contains(profile)) {
-            System.err.println("Profile already in set");
+            VAF.logger.info("Profile already in set");
             return;
         }
 
-        System.out.println("Adding: " + profile);
+        VAF.logger.info("Adding: " + profile);
         VAF.INSTANCE.profiles.add(profile);
         queuedProfiles.add(profile);
         onScannerProfileAdd.onNext(profile);
@@ -102,7 +125,7 @@ public enum VAF {
 
     public void removeScannerProfile(final ScannerProfile profile) {
         if (queuedProfiles.remove(profile)) {
-            System.out.println("Removing: " + profile);
+            logger.info("Removing: " + profile);
             profiles.remove(profile);
             onScannerProfileRemove.onNext(profile);
         }
@@ -113,7 +136,7 @@ public enum VAF {
             return;
         scanner.minimize();
         scanning.set(true);
-        System.out.println("Started scanning");
+        logger.info("Started scanning");
         service.submit(() -> {
             while (scanning.get())
                 scanner.scan();
@@ -124,11 +147,11 @@ public enum VAF {
         if (!scanning.get())
             return;
         scanning.set(false);
-        System.out.println("Stopped scanning");
+        logger.info("Stopped scanning");
     }
 
     public void shutdown() {
-        System.out.println("Shutting down...");
+        logger.info("Shutting down...");
         stopScanning();
         service.shutdown();
         scrappers.forEach(Scrapper::dispose);

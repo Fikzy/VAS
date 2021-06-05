@@ -14,6 +14,8 @@ import java.util.List;
 
 public class Scanner extends Scrapper {
 
+//    private static final VAF.logger VAF.logger = VAF.loggerFactory.getVAF.logger(Scanner.class);
+
     public Scanner() {
         super(false);
 
@@ -65,7 +67,7 @@ public class Scanner extends Scrapper {
         }
 
         // Fetch appointment slots
-        System.out.println("looking for slots");
+        VAF.logger.info("looking for slots");
 
         List<WebElement> slots = bookingAvailabilities.findElements(By.xpath(".//div[@role = \"button\"]"));
 
@@ -76,37 +78,36 @@ public class Scanner extends Scrapper {
         for (WebElement slot : slots) {
 
             String title = slot.getAttribute("title");
-            System.out.println(title);
+            VAF.logger.info(title);
 
             LocalDateTime appointmentDate = DateUtils.dateFromTitle(title);
             if (appointmentDate == null)
                 continue;
 
-            System.out.println(appointmentDate);
-            System.out.println(VAF.INSTANCE.searchMaxDate);
+            VAF.logger.info(appointmentDate.toString());
 
-            System.out.println("Checking if date is after max date");
+            VAF.logger.info("Checking if date is after max date");
             if (appointmentDate.isAfter(VAF.INSTANCE.searchMaxDate)) {
-                System.out.println("Appointment after max date");
+                VAF.logger.info("Appointment after max date");
                 return false;
             }
 
             LocalTime appointmentTime = LocalTime.of(appointmentDate.getHour(), appointmentDate.getMinute(), 0);
-            System.out.println(appointmentTime);
+            VAF.logger.info(appointmentTime.toString());
 
 //            if (DateUtils.isLocalDateTimeInLocalTimeRange(appointmentDate, profile.fromTime(), profile.toTime())) {
-//                System.out.println("Appointment doesn't fall within time range");
+//                VAF.logger.info("Appointment doesn't fall within time range");
 //                return false;
 //            }
 
-            System.out.println("Checking if date falls whithin range");
+            VAF.logger.info("Checking if date falls whithin range");
             if (appointmentTime.isBefore(profile.fromTime()) || appointmentTime.isAfter(profile.toTime())) {
-                System.out.println("Appointment doesn't fall within time range");
+                VAF.logger.info("Appointment doesn't fall within time range");
                 return false;
             }
 
             // Try to snatch appointment
-            System.out.println("Clicking");
+            VAF.logger.info("Clicking");
             try {
                 new WebDriverWait(driver, Duration.ofMillis(1000)).until(ExpectedConditions.elementToBeClickable(slot));
                 slot.click();
@@ -114,15 +115,15 @@ public class Scanner extends Scrapper {
                 System.err.println("Slot element is no longer valid");
                 continue;
             }
-            System.out.println("Clicked");
+            VAF.logger.info("Clicked");
 
             // Check if failed (instantly returns false if failed)
             if (!Action.appointmentAlreadyTaken(driver)) {
-                System.out.println("Valid appointment");
+                VAF.logger.info("Valid appointment");
                 return true;
             }
 
-            System.out.println("Appointment already taken");
+            VAF.logger.info("Appointment already taken");
         }
 
         return false;
