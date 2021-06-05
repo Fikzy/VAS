@@ -2,31 +2,37 @@ package vaf;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.time.format.DateTimeParseException;
-import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Locale;
+import java.util.List;
 
 public class DateUtils {
 
-    static Calendar calendar = Calendar.getInstance();
+    static final Calendar calendar = Calendar.getInstance();
 
-    // Example: jeu. 20 mai 15:10
-    public static DateTimeFormatter doctolibDateFormat = new DateTimeFormatterBuilder()
-            .appendPattern("EEE d[d] MMM HH:mm")
-            .parseDefaulting(ChronoField.YEAR, calendar.get(Calendar.YEAR))
-            .toFormatter(Locale.FRANCE);
+    static final List<String> frenchMonths = Arrays.asList(
+            "janvier", "février", "mars", "avril", "mai", "juin",
+            "juillet", "août", "septembre", "octobre", "novembre", "décembre"
+    );
 
     public static LocalDateTime dateFromTitle(final String title) {
+        // 'jeu. 20 mai 15:10'
+        // [day, dayNb, month, hour, minute]
+        String[] res = title.split("\\s|:");
+        System.out.println(Arrays.toString(res));
+        int monthIndex = frenchMonths.indexOf(res[2]);
+        if (monthIndex == -1) {
+            VAF.logger.error(String.format("Unknown month: '%s'", res[2]));
+            return null;
+        }
         try {
-            return LocalDateTime.parse(title, doctolibDateFormat);
-        } catch (DateTimeParseException e) {
-            e.printStackTrace();
-            System.err.println("Failed to parse: " + title);
-            VAF.INSTANCE.shutdown();
+            return LocalDateTime.of(
+                    calendar.get(Calendar.YEAR), monthIndex + 1,
+                    Integer.parseInt(res[1]), Integer.parseInt(res[3]), Integer.parseInt(res[4])
+            );
+        } catch (NumberFormatException ignored) {
+            VAF.logger.error("Unknown ");
             return null;
         }
     }
