@@ -90,7 +90,7 @@ public class Scanner extends Scrapper {
             VAF.logger.info("Checking if date falls whithin range");
             if (appointmentTime.isBefore(profile.fromTime()) || appointmentTime.isAfter(profile.toTime())) {
                 VAF.logger.info("Appointment doesn't fall within time range");
-                return false;
+                continue;
             }
 
             // Try to snatch appointment
