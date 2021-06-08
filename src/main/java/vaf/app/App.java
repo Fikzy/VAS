@@ -259,7 +259,7 @@ public enum App {
         });
 
         SearchBarController searchBar = new SearchBarController(
-                "Lieu de recherche :", "Exemple: \"Renne\", \"Paris 75015\"",
+                "lieu de recherche...", "Exemple: \"Renne\", \"Paris 75015\"",
                 (sb, text) -> {
                     VAF.INSTANCE.service.submit(() -> {
                         sb.setDisable(true);

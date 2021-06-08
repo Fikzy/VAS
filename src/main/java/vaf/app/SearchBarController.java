@@ -1,5 +1,6 @@
 package vaf.app;
 
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Bounds;
@@ -11,7 +12,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 import javafx.util.Duration;
 import vaf.Main;
 
@@ -27,13 +27,12 @@ public class SearchBarController extends HBox {
     private final TextField textField;
     private final Tooltip tooltip;
     private final Button searchButton;
-    private final Text labelText;
 
     public Boolean getDisableProperty() {
         return disableProperty.get();
     }
 
-    public SearchBarController(final String label, final String tooltipMessage,
+    public SearchBarController(final String promptMessage, final String tooltipMessage,
                                final BiConsumer<SearchBarController, String> onSearch) {
 
         textField = new TextField();
@@ -69,9 +68,11 @@ public class SearchBarController extends HBox {
         textField.disableProperty().bind(this.disableProperty);
         searchButton.disableProperty().bind(this.disableProperty);
 
-        labelText = new Text(label);
+        textField.setPromptText(promptMessage);
 
-        this.getChildren().addAll(labelText, textField, searchButton);
+        this.getChildren().addAll(textField, searchButton);
+
+        Platform.runLater(this::requestFocus); // Un-focus textField
 
         this.setAlignment(Pos.CENTER_LEFT);
         this.setSpacing(10);
