@@ -10,7 +10,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
@@ -176,7 +175,6 @@ public enum App {
 
         TimeRangeController timeRangeController = new TimeRangeController("Plage de recherche :",
                 VAF.INSTANCE.searchFromTime, VAF.INSTANCE.searchToTime);
-
         timeRangeController.fromTimeProperty().addListener((observable, oldValue, newValue) -> {
             VAF.logger.info("Set From to: " + newValue);
             VAF.INSTANCE.searchFromTime = newValue;
@@ -260,36 +258,18 @@ public enum App {
             settingsStage.show();
         });
 
-        TextField locationSearchBar = new TextField();
-        Text locationText = new Text("Lieu de recherche : ");
-        Tooltip locationTooltip = new Tooltip("Exemple: \"Renne\", \"Paris 75015\"");
-        locationSearchBar.setTooltip(locationTooltip);
-        locationTooltip.setShowDelay(Duration.millis(100));
-        locationTooltip.setFont(Font.font("", 14));
-        locationTooltip.setOnShowing(s -> {
-            Bounds bounds = locationSearchBar.localToScreen(locationSearchBar.getBoundsInLocal());
-            locationSearchBar.getTooltip().setX(bounds.getMinX() - locationTooltip.getWidth() / 2);
-            locationSearchBar.getTooltip().setY(bounds.getMaxY());
-        });
-
-
-        Button searchButton = new Button();
-        if (searchIcon != null) {
-            ImageView searchImage = new ImageView(new Image(searchIcon));
-            searchImage.setPreserveRatio(true);
-            searchImage.setFitWidth(20);
-            searchImage.setFitHeight(20);
-            searchButton.setGraphic(searchImage);
-        }
-
-        locationSearchBar.setOnKeyPressed(event -> {
-            if (event.getCode().equals(KeyCode.ENTER))
-                submitLocationSearch(locationSearchBar, searchButton);
-        });
-        searchButton.setOnAction(event -> {
-            if (!locationSearchBar.getText().isEmpty())
-                submitLocationSearch(locationSearchBar, searchButton);
-        });
+        SearchBarController searchBar = new SearchBarController(
+                "Lieu de recherche :", "Exemple: \"Renne\", \"Paris 75015\"",
+                (sb, text) -> {
+                    VAF.INSTANCE.service.submit(() -> {
+                        sb.setDisable(true);
+                        VAF.INSTANCE.centerSearcher.submitSearch(text);
+                        sb.setDisable(false);
+                        sb.clearInput();
+                    });
+                }
+        );
+        searchBar.setPadding(new Insets(5));
 
         Button addCenterButton = new Button("Ajouter un centre manuellement");
         Tooltip addCenterManuallyTooltip = new Tooltip("Des difficultés avec l'ajout par lieu ? Ajouter un centre depuis une URL");
@@ -306,7 +286,7 @@ public enum App {
         });
 
         ToolBar toolBar = new ToolBar(
-                locationText, locationSearchBar, searchButton, Utils.hSpacer(), addCenterButton, new Separator(), searchSettingsButton
+                searchBar, Utils.hSpacer(), addCenterButton, new Separator(), searchSettingsButton
         );
 
         ScrollPane scrollPane = new ScrollPane(scannerListView);

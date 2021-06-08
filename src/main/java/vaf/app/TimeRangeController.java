@@ -2,7 +2,6 @@ package vaf.app;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
@@ -34,7 +33,6 @@ public class TimeRangeController extends HBox {
 
         this.setAlignment(Pos.CENTER_LEFT);
         this.setSpacing(5);
-        this.setPadding(new Insets(10));
 
         TimeSpinner fromTimeSpinner = new TimeSpinner(initialFrom);
         Text fromText = new Text("h à ");

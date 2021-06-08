@@ -2,7 +2,6 @@ package vaf.app;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
-import javafx.geometry.Insets;
 import javafx.scene.control.CheckBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -19,8 +18,7 @@ public class CheckboxGroupController<T> extends VBox {
 
     public CheckboxGroupController(final String label, final T[] elements) {
 
-        this.setSpacing(10);
-        this.setPadding(new Insets(10));
+        this.setSpacing(5);
 
         getChildren().add(new Text(label));
 
