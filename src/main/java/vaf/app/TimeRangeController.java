@@ -44,5 +44,14 @@ public class TimeRangeController extends HBox {
 
         fromTime.bind(fromTimeSpinner.valueProperty());
         toTime.bind(toTimeSpinner.valueProperty());
+
+        fromTime.addListener((observable, oldValue, newValue) -> {
+            if (newValue.isAfter(toTime.getValue()))
+                toTimeSpinner.getValueFactory().setValue(fromTime.getValue());
+        });
+        toTime.addListener((observable, oldValue, newValue) -> {
+            if (newValue.isBefore(fromTime.getValue()))
+                fromTimeSpinner.getValueFactory().setValue(toTime.getValue());
+        });
     }
 }

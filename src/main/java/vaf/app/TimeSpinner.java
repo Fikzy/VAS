@@ -151,6 +151,11 @@ public class TimeSpinner extends Spinner<LocalTime> {
 
         // When the mode changes, select the new portion:
         mode.addListener((obs, oldMode, newMode) -> newMode.select(this));
+
+        valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue.getMinute() % 5 != 0)
+                getValueFactory().setValue(newValue.withMinute(5 * Math.round(newValue.getMinute() / 5)));
+        });
     }
 
     public TimeSpinner() {
