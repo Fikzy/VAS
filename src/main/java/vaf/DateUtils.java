@@ -11,17 +11,15 @@ public class DateUtils {
 
     static final Calendar calendar = Calendar.getInstance();
 
-    static final List<String> frenchMonths = Arrays.asList(
-            "janvier", "février", "mars", "avril", "mai", "juin",
-            "juillet", "août", "septembre", "octobre", "novembre", "décembre"
+    static final List<String> abbreviatedFrenchMonths = Arrays.asList(
+            "janv.", "févr.", "mars", "avr.", "mai", "juin",
+            "juil.", "août", "sept.", "oct.", "nov.", "déc."
     );
 
     public static LocalDateTime dateFromTitle(final String title) {
-        // 'jeu. 20 mai 15:10'
-        // [day, dayNb, month, hour, minute]
         String[] res = title.split("\\s|:");
         System.out.println(Arrays.toString(res));
-        int monthIndex = frenchMonths.indexOf(res[2]);
+        int monthIndex = abbreviatedFrenchMonths.indexOf(res[2]);
         if (monthIndex == -1) {
             VAF.logger.error(String.format("Unknown month: '%s'", res[2]));
             return null;
